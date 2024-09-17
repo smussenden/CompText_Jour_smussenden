@@ -14,6 +14,7 @@ To use a library, you need to import it. Put all your library steps at the top o
 #load the tidyverse library
 ```{r}
 library(tidyverse)
+library(tidyverse)
 ```
 
 ## Importing data
@@ -55,6 +56,7 @@ There are several useful functions for getting a sense of the dataset right in o
 If we run `glimpse(baltcity_income)`, it will give us a list of the columns, the data type for each column and and the first few values for each column.  
 
 ```{r}
+glimpse(baltcity_income)
 glimpse(baltcity_income)
 
 ```
@@ -103,7 +105,7 @@ So we'll add another "and then do this" symbol -- %>% -- and use a new function 
 ```{r}
 baltcity_income %>%
   group_by(Neighborhood) %>%
-  summarise(
+  summarize(
     count_tracts = n()
   ) %>% 
   arrange(desc(count_tracts))
@@ -162,7 +164,7 @@ It is part of the Upton/Druid Heights neighborhood in West Baltimore.
 
 **YOUR TURN**
 
-Provide a list of all neighborhoods at or above $100,000 median income income in 2020
+Provide a list of all neighborhoods at or above $100,000 in median income income in 2020
 
 ```{r}
 
@@ -328,6 +330,10 @@ Count them.
 What percentage of the city's census tracts are below the average? Put that in code too.
 
 ```{r}
+mean(baltcity_income$x2020, na.rm= TRUE)
+```
+
+```{r}
 
 
 
@@ -341,6 +347,11 @@ baltcity_income %>%
   ))
   
 
+```
+
+```{r}
+
+(121/200)*100
 ```
 
 
