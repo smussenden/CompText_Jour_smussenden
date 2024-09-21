@@ -38,29 +38,6 @@ glimpse(blackindex_master)
 
 ```
 
- 
---Create a table that displays a count of the top 5 newspaper_city entries
-
---Create a table that counts all newspaper_city entries by year. UPDATE: Filter out the NA values
-
---Using code, describe the number of rows and columns in the dataset
-
---Create a table that displays a count of the top 5 newspaper_city entries
-
---Create a table that counts the different entries in the "newspaper_city" column
-
---Create a table that counts all newspaper_city entries by year. UPDATE: Filter out the NA values
-
---Create a simple column ggplot chart that shows the total entries by year
-
-Armed with your data analysis, write a 250 word memo at the end of the R markdown document that summarizes your findings. Use this opportunity to ask questions or note any major flaws in the data.
-
- 
-
-You are welcome to use your notes, books, search online, use AI tools and consult with classmates on this assignment, but the final work product must be your own. 
-
-(See rubrics below for guidelines on successfully completing this assignment.)
-
 ## Research Questions
 
 ### Research Question/Task 01
@@ -151,7 +128,7 @@ Some cities, like Battle Creek, are represented by a single entry in 1894. To co
 The newspaper city NA problem is likely correctable. For missing values, another column in the dataset -- newspaper_name -- likely presents an opportunity to impute a city's publication. 
 
 In almost all of the cases where newspaper_city is missing, the newspaper_name column contains the city name in parentheses after the publication title. These three examples are representative: 'Afro-American courier. (Yazoo City, Mis...)', 'Arizona sun (Phoenix, Ariz.)', 'Arizona tribune (Phoenix, Ariz.)', 'Cayton's weekly (Seattle, Wash.)', 'Chicago world. (Chicago, Ill.)'. Using string functions, it would be trivial to extract the city name populate the newspaper city column. 
-
+l
 There are key unknowns that must be examined before using this sample to develop an understanding of Black newspaper articles. It's unclear whether the sample of articles here is temporally, topically or geographically representative of a complete corpus of Black newspaper articles.  
 
 Finally, the dataset appears to be structured to enable content analysis on the text of each article.  The filepath and url columns appear to link to, respectively, the article text and the source article.  Those files could be loaded and the text extracted into a format suitable for standard content analysis methods.
