@@ -2,8 +2,9 @@
 
 #1: Install tidytext package and then Load libraries: tidyverse, tidytext
 ```{r}
-
-
+#install.packages('tidytext')
+library(tidytext)
+library(tidyverse)
 
 ```
 
@@ -99,7 +100,6 @@ tidy_books %>%
 Because we've been using tidy tools, our word counts are stored in a tidy data frame. This allows us to pipe this directly to the ggplot2 package, for example to create a visualization of the most common words (Figure \@ref(fig:plotcount)).
 
 ```{r}
-library(ggplot2)
 
 tidy_books %>%
   count(word, sort = TRUE) %>%
@@ -107,7 +107,9 @@ tidy_books %>%
   mutate(word = reorder(word, n)) %>%
   ggplot(aes(n, word)) +
   geom_col() +
-  labs(y = NULL)
+  labs(y = NULL) +
+  theme(text = element_text(size = 16, family = "Helvetica"))
+
 ```
 
 Note that the `austen_books()` function started us with exactly the text we wanted to analyze, but in other cases we may need to perform cleaning of text data, such as removing copyright headers or formatting. You'll see examples of this kind of pre-processing in the case study chapters, particularly Chapter \@ref(pre-processing-text). 
@@ -126,10 +128,10 @@ To learn more about gutenbergr, check out the [package's documentation at rOpenS
 A common task in text mining is to look at word frequencies, just like we have done above for Jane Austen's novels, and to compare frequencies across different texts. We can do this intuitively and smoothly using tidy data principles. We already have Jane Austen's works; let's get two more sets of texts to compare to. First, let's look at some science fiction and fantasy novels by H.G. Wells, who lived in the late 19th and early 20th centuries. Let's get [*The Time Machine*](https://www.gutenberg.org/ebooks/35), [*The War of the Worlds*](https://www.gutenberg.org/ebooks/36), [*The Invisible Man*](https://www.gutenberg.org/ebooks/5230), and [*The Island of Doctor Moreau*](https://www.gutenberg.org/ebooks/159). We can access these works using `gutenberg_download()` and the Project Gutenberg ID numbers for each novel.
 
 ```{r eval = FALSE}
-install.packages("gutenbergr")
-library(gutenbergr)
+#install.packages("gutenbergr")
+#library(gutenbergr)
 
-hgwells <- gutenberg_download(c(35, 36, 5230, 159))
+#hgwells <- gutenberg_download(c(35, 36, 5230, 159))
 ```
 
 ```{r}
@@ -153,7 +155,7 @@ tidy_hgwells %>%
 Now let's get some well-known works of the Brontë sisters, whose lives overlapped with Jane Austen's somewhat but who wrote in a rather different style. Let's get [*Jane Eyre*](https://www.gutenberg.org/ebooks/1260), [*Wuthering Heights*](https://www.gutenberg.org/ebooks/768), [*The Tenant of Wildfell Hall*](https://www.gutenberg.org/ebooks/969), [*Villette*](https://www.gutenberg.org/ebooks/9182), and [*Agnes Grey*](https://www.gutenberg.org/ebooks/767). We will again use the Project Gutenberg ID numbers for each novel and access the texts using `gutenberg_download()`.
 
 ```{r eval = FALSE}
-bronte <- gutenberg_download(c(1260, 768, 969, 9182, 767))
+#bronte <- gutenberg_download(c(1260, 768, 969, 9182, 767))
 ```
 
 ```{r echo = FALSE}
@@ -192,7 +194,10 @@ frequency <- bind_rows(mutate(tidy_bronte, author = "Brontë Sisters"),
   pivot_longer(`Brontë Sisters`:`H.G. Wells`,
                names_to = "author", values_to = "proportion")
 
-frequency
+#frequency
+
+frequency <- head(frequency,100000)
+#options(scipen = 999)
 ```
 
 We use `str_extract()` here because the UTF-8 encoded texts from Project Gutenberg have some examples of words with underscores around them to indicate emphasis (like italics). The tokenizer treated these as words, but we don't want to count "\_any\_" separately from "any" as we saw in our initial data exploration before choosing to use `str_extract()`. 
@@ -202,19 +207,21 @@ Now let's plot (Figure \@ref(fig:plotcompare)).
 ```{r}
 library(scales)
 
-# expect a warning about rows with missing values being removed
-ggplot(frequency, aes(x = proportion, y = `Jane Austen`, 
-                      color = abs(`Jane Austen` - proportion))) +
-  geom_abline(color = "gray40", lty = 2) +
-  geom_jitter(alpha = 0.1, size = 2.5, width = 0.3, height = 0.3) +
-  geom_text(aes(label = word), check_overlap = TRUE, vjust = 1.5) +
-  scale_x_log10(labels = percent_format()) +
-  scale_y_log10(labels = percent_format()) +
-  scale_color_gradient(limits = c(0, 0.001), 
-                       low = "darkslategray4", high = "gray75") +
-  facet_wrap(~author, ncol = 2) +
-  theme(legend.position="none") +
-  labs(y = "Jane Austen", x = NULL)
+# # expect a warning about rows with missing values being removed
+ ggplot(frequency, aes(x = proportion, y = `Jane Austen`, 
+                       color = abs(`Jane Austen` - proportion))) +
+   theme(text = element_text(size = 16, family = "Helvetica")) +
+   geom_abline(color = "gray40", lty = 2) +
+   geom_jitter(alpha = 0.1, size = 2.5, width = 0.3, height = 0.3) +
+   geom_text(aes(label = word), check_overlap = TRUE, vjust = 1.5, family="sans") +
+   scale_x_log10(labels = percent_format()) +
+   scale_y_log10(labels = percent_format()) +
+   scale_color_gradient(limits = c(0, 0.001), 
+                        low = "darkslategray4", high = "gray75") +
+   facet_wrap(~author, ncol = 2) +
+   theme(text = element_text(size = 16, family = "Helvetica")) +
+   theme(legend.position="none") +
+   labs(y = "Jane Austen", x = NULL) 
 ```
 
 Words that are close to the line in these plots have similar frequencies in both sets of texts, for example, in both Austen and Brontë texts ("miss", "time", "day" at the upper frequency end) or in both Austen and Wells texts ("time", "day", "brother" at the high frequency end). Words that are far from the line are words that are found more in one set of texts than another. For example, in the Austen-Brontë panel, words like "elizabeth", "emma", and "fanny" (all proper nouns) are found in Austen's texts but not much in the Brontë texts, while words like "arthur" and "dog" are found in the Brontë texts but not the Austen texts. In comparing H.G. Wells with Jane Austen, Wells uses words like "beast", "guns", "feet", and "black" that Austen does not, while Austen uses words like "family", "friend", "letter", and "dear" that Wells does not.

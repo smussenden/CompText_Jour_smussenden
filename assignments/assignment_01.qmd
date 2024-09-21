@@ -1,0 +1,157 @@
+---
+title: "assignment_01"
+format: html
+---
+
+# Assignment 01
+
+* Sean Mussenden
+* 2024-09-21
+* Assignment 01
+
+## Load Libraries
+
+```{r}
+
+# Load the tidyverse
+library(tidyverse)
+```
+
+## Load Data
+
+```{r}
+
+# Load data provided for assignment
+blackindex_master <- read_csv("https://github.com/wellsdata/CompText_Jour/raw/main/data/blackindex_master.csv")
+
+
+```
+
+## Describe data
+
+```{r}
+## Instruction: Using code, describe the number of rows and columns in the dataset
+
+print(paste0("This dataset has ", nrow(blackindex_master), " rows and ", ncol(blackindex_master), " columns. Each row in this dataset appears to describe a single article that appeared in a Black newspaper between ", min(blackindex_master$year), " and ", max(blackindex_master$year), ". The articles appear to have been sourced from several historical newspaper databases and archives. Many of the article headlines reference racial terror lynching."))
+
+glimpse(blackindex_master)
+
+```
+
+ 
+--Create a table that displays a count of the top 5 newspaper_city entries
+
+--Create a table that counts all newspaper_city entries by year. UPDATE: Filter out the NA values
+
+--Using code, describe the number of rows and columns in the dataset
+
+--Create a table that displays a count of the top 5 newspaper_city entries
+
+--Create a table that counts the different entries in the "newspaper_city" column
+
+--Create a table that counts all newspaper_city entries by year. UPDATE: Filter out the NA values
+
+--Create a simple column ggplot chart that shows the total entries by year
+
+Armed with your data analysis, write a 250 word memo at the end of the R markdown document that summarizes your findings. Use this opportunity to ask questions or note any major flaws in the data.
+
+ 
+
+You are welcome to use your notes, books, search online, use AI tools and consult with classmates on this assignment, but the final work product must be your own. 
+
+(See rubrics below for guidelines on successfully completing this assignment.)
+
+## Research Questions
+
+### Research Question/Task 01
+
+Q: What are the top five cities in the newspaper_city column?
+A:
+```{r}
+
+# Count newspapers by city
+newspaper_city_count <- blackindex_master %>%
+  count(newspaper_city, sort = TRUE)
+
+# Create a df removing NA values 
+newspaper_city_count_no_na <- newspaper_city_count %>%
+  filter(!is.na(newspaper_city))
+
+# Count NA values
+newspaper_city_count_na <- newspaper_city_count %>%
+  filter(is.na(newspaper_city)) %>%
+  pull(n)
+
+# Loop through top five cities to create a string with city and count of articles
+top_five <- map(1:5, ~ paste0(newspaper_city_count_no_na$newspaper_city[.x], 
+                              " (", newspaper_city_count_no_na$n[.x], ")"))
+
+# Print out summary sentence
+print(paste0("A: The top five cities in the newspaper_city column are: ", 
+             paste(top_five, collapse = ", "), ". However, it's important to note that the dataset of ",nrow(blackindex_master), " rows has ", newspaper_city_count_na, " rows with a missing value in the newspaper_city column."))
+
+# Display top five table
+newspaper_city_count_no_na %>%
+  head(5) %>%
+  rename(count = n)
+
+
+```
+
+### Research Question/Task 02
+
+Q: Create a table that counts all newspaper_city entries by year, filtering out the out the NA values.
+A: 
+
+```{r}
+
+# Create required dataframe
+newspaper_city_by_year <- blackindex_master %>%
+  filter(!is.na(newspaper_city)) %>%
+  count(newspaper_city, year, name = "count") %>%
+  arrange(newspaper_city, year)
+
+# Display dataframe
+newspaper_city_by_year
+
+
+```
+### Research Question/Task 03
+
+Q: Create a simple column ggplot chart that shows the total entries by year.
+A: 
+
+```{r}
+
+
+# Create df grouping by year, then charting
+blackindex_master %>%
+  count(year) %>% 
+  ggplot(aes(x = year, y = n)) +
+  geom_col() +
+  labs(title = "Total Articles by Year in Black Index Master",
+       subtitle = "There are more articles from 1920 in this dataset than any other year",
+       x = "Year",
+       y = "Total Articles",
+       caption = "Source: Black Index Master Dataset, Via Prof. Rob Wells") +
+  scale_x_continuous(breaks = seq(1850, 2020, 10)) +
+  #rotate x axis labels 45 degrees
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Summary
+
+The dataset 'blackindex_master' provided by Prof. Rob Wells contains 1803 articles from Black newspapers. Many of the articles' headlines reference racial terror lynchings, which targeted African-Americans in the mid-to-late late 19th and early 20th centuries. The articles cover a period from 1850 to 2002, though the majority of articles are from the period between 1900 and 1950, with a clear peak in 1920. 
+
+The top five cities for publications represented in the data are Pittsburgh, Chicago, Atlanta, Norfolk	and New York, though the very large number of NA values in the newspaper city column suggest that the column should not be used to draw conclusions about the geography of the overall dataset. 
+
+Some cities, like Battle Creek, are represented by a single entry in 1894. To contrast, Pittsburgh has a publication with at least one article in the data in 36 different years. But without further standardization, it's hard to know whether the ranking of top cities is meaningful. 
+
+The newspaper city NA problem is likely correctable. For missing values, another column in the dataset -- newspaper_name -- likely presents an opportunity to impute a city's publication. 
+
+In almost all of the cases where newspaper_city is missing, the newspaper_name column contains the city name in parentheses after the publication title. These three examples are representative: 'Afro-American courier. (Yazoo City, Mis...)', 'Arizona sun (Phoenix, Ariz.)', 'Arizona tribune (Phoenix, Ariz.)', 'Cayton's weekly (Seattle, Wash.)', 'Chicago world. (Chicago, Ill.)'. Using string functions, it would be trivial to extract the city name populate the newspaper city column. 
+
+There are key unknowns that must be examined before using this sample to develop an understanding of Black newspaper articles. It's unclear whether the sample of articles here is temporally, topically or geographically representative of a complete corpus of Black newspaper articles.  
+
+Finally, the dataset appears to be structured to enable content analysis on the text of each article.  The filepath and url columns appear to link to, respectively, the article text and the source article.  Those files could be loaded and the text extracted into a format suitable for standard content analysis methods.
