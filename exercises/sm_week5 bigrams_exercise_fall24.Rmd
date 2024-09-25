@@ -1,0 +1,225 @@
+---
+title: "Bigrams Exercise Sept 24"
+author: "Rob Wells"
+date: '2024-09-20'
+output: html_document
+---
+
+# Jour 389/689 Fall 2024:
+
+
+```{r}
+#load tidyverse, tidytext, rio and quanteda libraries
+
+library(tidyverse)
+library(tidytext)
+library(rio)
+library(quanteda)
+```
+
+```{r}
+#Import dataframe 
+
+lynch <- read_csv("../data/articles_oct_19.csv")
+
+```
+
+
+# Create a new dataframe that filters articles for 1900 to 1910
+
+```{r}
+
+articles_1900_1910 <- lynch %>%
+  filter(year >= 1900 & year <= 1910)
+
+
+```
+
+
+# Count the number of distinct articles in 1900 dataframe
+```{r}
+distinct_articles_1900_1910 <- articles_1900_1910 %>%
+  distinct(filename) %>%
+  count()
+
+distinct_articles_1900_1910
+
+```
+
+# Count the number of newspaper_states in the 1900 corpus
+```{r}
+newspaper_states_1900_1910 <- articles_1900_1910 %>%
+  distinct(newspaper_state) %>%
+  count()
+
+newspaper_states_1900_1910
+
+```
+
+# Tokenize the 1900 lynching stories
+
+```{r}
+articles_1900_1910_tokenized <- articles_1900_1910 %>%
+  select(sentence) %>%
+  unnest_tokens(word, sentence) #%>%
+#  mutate(word_no_punct = str_remove_all(word, "[[:punct:]]")) # %>%
+#  mutate(punct_detect = str_detect(word, "[[:punct:]]")) 
+
+articles_1900_1910_tokenized
+
+```
+
+
+#Remove stopwords
+The tidytext package includes the stop_words dataset.It contains, as of this writing, 1,149 words that data scientists and linguistic nerds felt could be removed from sentences because they don't add meaning. Filtering out these words can help focus on the more meaningful content, making it easier to uncover trends, themes, and key information in large amounts of text. Obviously, we have different priorities and we may or may not want to use stop_words or we have want to provide a customized list of stop words.
+
+The stop_words list is derived from three separate lists, or lexicons: SMART (571 words), onix (404 words), and snowball (174 words)
+
+The ONIX lexicon comes from the Open Information Exchange and is often used in text mining and natural language processing. 
+
+The Snowball lexicon is part of a broader project that has algorithms that simplify words in different languages by reducing them to their root form. It's best known for the Porter stemming algorithm, which, for example, changes "running" to "run." 
+
+Lastly, the SMART lexicon is a set of common words, like "and," "the," and "is," and it comes from the SMART Information Retrieval System, created at Cornell University in the 1960s.
+
+```{r}
+data(stop_words)
+
+test <- stop_words %>% 
+  as.data.frame()
+
+head(test)
+```
+# Strip out stop words
+
+```{r}
+
+articles_1900_1910_tokenized_no_stop_words <- articles_1900_1910_tokenized %>%
+  anti_join(stop_words, by = c("word" = "word")) %>%
+  filter(word != "temp_file") %>%
+  filter(word != "stories_corpus") %>%
+  filter(!grepl('[0-9]', word))
+
+# Word Count
+
+count_articles_1900_1910_tokenized_no_stop_words <- articles_1900_1910_tokenized_no_stop_words %>%
+  count(word, sort=TRUE)
+
+head(count_articles_1900_1910_tokenized_no_stop_words, 20)
+
+
+```
+
+# Bigrams
+## We are now creating two word phrases but before the stop words are taken out
+
+```{r}
+
+
+articles_1900_1910_bigrams <- articles_1900_1910 %>%
+  select(sentence) %>%
+  unnest_tokens(bigram, sentence, token = "ngrams", n = 2)
+
+
+articles_1900_1910_bigrams_separated <- articles_1900_1910_bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+
+```
+
+# Create a new dataframe with counts of the bigrams
+```{r}
+count_articles_1900_1910_bigrams <- articles_1900_1910_bigrams_separated %>%
+  group_by(word1, word2) %>%
+  count(sort=TRUE)
+
+count_articles_1900_1910_bigrams
+```
+
+## Now filter the counts 
+```{r}
+
+articles_1900_1910_bigrams_no_stop <- articles_1900_1910_bigrams_separated %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+
+count_articles_1900_1910_bigrams_no_stop <- articles_1900_1910_bigrams_no_stop %>%
+  group_by(word1,word2) %>%
+  count(sort = TRUE) %>% 
+  filter(!is.na(word1))
+
+count_articles_1900_1910_bigrams_no_stop
+```
+
+# Add a "1900" decade column
+
+Hint: use mutate
+
+```{r}
+
+count_articles_1900_1910_bigrams_no_stop <- count_articles_1900_1910_bigrams_no_stop %>%
+  mutate(decade = "1900") %>%
+  select(decade, everything())
+
+```
+
+
+# YOUR TURN
+
+Create one dataframe with black press articles
+Create a second dataframe without black press articles
+Produce the top 20 bigrams for the black press and non-black press coverage
+Compare and discuss!
+
+```{r}
+
+###
+# Make black press and non-black press dataframes
+###
+
+black_press <- lynch %>%
+  filter(black_press == "Y")
+
+no_black_press <- lynch %>%
+  filter(is.na(black_press))
+
+
+
+
+make_top_bigrams_df <- function(df, source) {
+  
+  temp <- df %>%
+    select(sentence) %>%
+    unnest_tokens(bigram, sentence, token="ngrams", n=2) %>%
+    separate(bigram, c("word1", "word2"), sep = " ") %>%
+    filter(!word1 %in% stop_words$word) %>%
+    filter(!word2 %in% stop_words$word) %>% 
+    filter(!is.na(word1)) %>%
+    group_by(word1,word2) %>%
+    count(sort = TRUE, name="count") %>% 
+    filter(!is.na(word1)) %>%
+    mutate(source = source) %>%
+    mutate(bigram = paste0(word1, " ", word2)) %>%
+    ungroup() %>%
+    select(source,bigram, count) %>%
+    slice(1:20)
+  
+  return(temp)
+}
+
+black_press_top_bigrams <- make_top_bigrams_df(black_press, "black_press")
+non_black_press_top_bigrams <- make_top_bigrams_df(no_black_press, "no_black_press")
+in_both <- inner_join(black_press_top_bigrams, non_black_press_top_bigrams, by="bigram")
+in_black_press_only <- anti_join(black_press_top_bigrams, non_black_press_top_bigrams, by="bigram")
+in_non_black_press_only <- anti_join(non_black_press_top_bigrams, black_press_top_bigrams, by="bigram")
+
+
+summary <- "There are several similarities between the black press and non-black press coverage of lynching, based on the top bigrams for each corpus. Six of 20 bigrams appear in both lists: Mob violence, lynch law, grand jury, white woman, st louis and mob law, suggesting some overlap, though it's hard to know without further research if the terms are used to the same effect in both corpuses.  The black press top list also includes bigrams like colored people, civil rights, anti lynch, the federal government and lynching bill, which are not present in the non-black press top bigrams list. This could suggest that the black press was more likely to discuss the broader social, legal and political implications of lynching, though further research is needed to confirm this. Meanwhile, the list of bigrams exclusive to the non-black press includes several law enforcement and legal process terms -- county jail, deputy sheriff, court house, criminal assault -- and specific references to the act of lynching -- negro lynched, murderer lynched, mob lynches, mob lynched. That could suggest a greater coverage focus of individual lynching events, though further research is needed to confirm this."
+
+black_press_top_bigrams
+non_black_press_top_bigrams
+in_both
+in_black_press_only
+in_non_black_press_only
+summary
+```
+
