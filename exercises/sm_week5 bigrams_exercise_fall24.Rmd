@@ -61,9 +61,7 @@ newspaper_states_1900_1910
 ```{r}
 articles_1900_1910_tokenized <- articles_1900_1910 %>%
   select(sentence) %>%
-  unnest_tokens(word, sentence) #%>%
-#  mutate(word_no_punct = str_remove_all(word, "[[:punct:]]")) # %>%
-#  mutate(punct_detect = str_detect(word, "[[:punct:]]")) 
+  unnest_tokens(word, sentence) 
 
 articles_1900_1910_tokenized
 
@@ -123,6 +121,7 @@ articles_1900_1910_bigrams <- articles_1900_1910 %>%
 articles_1900_1910_bigrams_separated <- articles_1900_1910_bigrams %>%
   separate(bigram, c("word1", "word2"), sep = " ")
 
+articles_1900_1910_bigrams_separated
 
 ```
 
@@ -160,6 +159,8 @@ count_articles_1900_1910_bigrams_no_stop <- count_articles_1900_1910_bigrams_no_
   mutate(decade = "1900") %>%
   select(decade, everything())
 
+count_articles_1900_1910_bigrams_no_stop
+
 ```
 
 
@@ -183,7 +184,9 @@ no_black_press <- lynch %>%
   filter(is.na(black_press))
 
 
-
+###
+# Function to make top bigrams for any slice of lynch df
+###
 
 make_top_bigrams_df <- function(df, source) {
   
@@ -206,14 +209,33 @@ make_top_bigrams_df <- function(df, source) {
   return(temp)
 }
 
+###
+# Create top bigrams for black press and non-black press
+###
+
 black_press_top_bigrams <- make_top_bigrams_df(black_press, "black_press")
 non_black_press_top_bigrams <- make_top_bigrams_df(no_black_press, "no_black_press")
+
+###
+# Create dataframe of common bigrams in both
+###
+
 in_both <- inner_join(black_press_top_bigrams, non_black_press_top_bigrams, by="bigram")
+
+###
+# Create dataframe of bigrams exclusive to each
+###
 in_black_press_only <- anti_join(black_press_top_bigrams, non_black_press_top_bigrams, by="bigram")
 in_non_black_press_only <- anti_join(non_black_press_top_bigrams, black_press_top_bigrams, by="bigram")
 
-
+###
+# Write up summary of results
+###
 summary <- "There are several similarities between the black press and non-black press coverage of lynching, based on the top bigrams for each corpus. Six of 20 bigrams appear in both lists: Mob violence, lynch law, grand jury, white woman, st louis and mob law, suggesting some overlap, though it's hard to know without further research if the terms are used to the same effect in both corpuses.  The black press top list also includes bigrams like colored people, civil rights, anti lynch, the federal government and lynching bill, which are not present in the non-black press top bigrams list. This could suggest that the black press was more likely to discuss the broader social, legal and political implications of lynching, though further research is needed to confirm this. Meanwhile, the list of bigrams exclusive to the non-black press includes several law enforcement and legal process terms -- county jail, deputy sheriff, court house, criminal assault -- and specific references to the act of lynching -- negro lynched, murderer lynched, mob lynches, mob lynched. That could suggest a greater coverage focus of individual lynching events, though further research is needed to confirm this."
+
+###
+# Output results
+###
 
 black_press_top_bigrams
 non_black_press_top_bigrams
