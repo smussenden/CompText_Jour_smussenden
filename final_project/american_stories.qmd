@@ -1,0 +1,34 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Quarto
+
+```{python}
+
+from datasets import load_dataset
+
+#  Download data for the year 1809 at the associated article level (Default)
+dataset = load_dataset("dell-research-harvard/AmericanStories",
+    "subset_years",
+    year_list=["1809", "1810"]
+)
+
+# Download and process data for all years at the article level
+dataset = load_dataset("dell-research-harvard/AmericanStories",
+    "all_years"
+)
+
+# Download and process data for 1809 at the scan level
+dataset = load_dataset("dell-research-harvard/AmericanStories",
+    "subset_years_content_regions",
+    year_list=["1809"]
+)
+
+# Download ad process data for all years at the scan level
+dataset = load_dataset("dell-research-harvard/AmericanStories",
+    "all_years_content_regions")
+
+```
