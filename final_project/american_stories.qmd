@@ -6,29 +6,20 @@ editor: visual
 
 ## Quarto
 
-```{python}
+```{r}
+library(tidyverse)
 
-from datasets import load_dataset
+# Get the list of CSV files
+lynch_dfs <- list.files(path = "AmericanStories-main-DELL-GITHUB-REPO/lynch_dfs", 
+                        pattern = "*.csv", full.names = TRUE)
 
-#  Download data for the year 1809 at the associated article level (Default)
-dataset = load_dataset("dell-research-harvard/AmericanStories",
-    "subset_years",
-    year_list=["1809", "1810"]
-)
+# Read each CSV and add a filename column before rowbinding
+lynch_dfs_combined <- map_dfr(lynch_dfs, ~ read_csv(.x) %>%
+                               mutate(filename = basename(.x)))
 
-# Download and process data for all years at the article level
-dataset = load_dataset("dell-research-harvard/AmericanStories",
-    "all_years"
-)
 
-# Download and process data for 1809 at the scan level
-dataset = load_dataset("dell-research-harvard/AmericanStories",
-    "subset_years_content_regions",
-    year_list=["1809"]
-)
+```
 
-# Download ad process data for all years at the scan level
-dataset = load_dataset("dell-research-harvard/AmericanStories",
-    "all_years_content_regions")
+```{r}
 
 ```
