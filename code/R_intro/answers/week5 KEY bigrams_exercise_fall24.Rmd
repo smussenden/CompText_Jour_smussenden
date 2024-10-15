@@ -23,12 +23,13 @@ And do the same with the new dataset: black_press_extracted_text_june_22_2024.cs
 
 Hand in your completed assignment by uploading to your personal GitHub repository, obtaining the URL and submitting that to Elms
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 #load tidyverse, tidytext, rio and quanteda libraries
 library(tidyverse)
 library(rio)
 library(tidytext)
 library(quanteda)
+library(knitr)
 
 
 ```
@@ -38,6 +39,8 @@ library(quanteda)
 
 lynch <- read_csv("../data/articles_oct_19.csv")
 
+
+lynch <- read_csv("/Users/robwells/Code/CompText_Jour/data/articles_oct_19.csv")
 ```
 
 
@@ -181,9 +184,152 @@ stories_bigram_cts_1900 <- stories_bigram_cts %>%
 # YOUR TURN
 
 Create one dataframe with black press articles
-Create a second dataframe without black press articles
+```{r}
+bp <- lynch %>% 
+  filter(black_press=="Y")
+
+
+```
+
+
 Produce the top 20 bigrams for the black press and non-black press coverage
+# Tokenize the 1900 lynching stories
+
+```{r}
+
+stories <- str_replace_all(bp$sentence, "- ", "")
+stories_df <- tibble(stories,)
+
+# unnest includes lower, punct removal
+
+stories_tokenized <- stories_df %>%
+  unnest_tokens(word,stories)
+
+stories_tokenized
+```
+# Bigrams
+## We are now creating two word phrases but before the stop words are taken out
+
+```{r}
+bp_stories_bigrams <- stories_df %>%
+  unnest_tokens(bigram, stories, token="ngrams", n=2)
+
+bp_stories_bigrams_separated <- bp_stories_bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>% 
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word) %>% 
+  count(word1, word2, sort = TRUE) %>% 
+  filter(!is.na(word1))
+
+bp_stories_bigrams_separated
+
+```
+
+
+Create one dataframe without black press articles
+```{r}
+wp <- lynch %>% 
+  filter(is.na(black_press))
+
+#for some reason, the column had a trailing space so the anti-filter only worked like so:
+# wp <- lynch %>% 
+#   filter(black_press != "Y ")
+
+#to eliminate leading and trailing spaces
+# lynch <- lynch %>%
+#   mutate(black_press = trimws(black_press)) 
+```
+
+
+Produce the top 20 bigrams for the black press and non-black press coverage
+# Tokenize the 1900 lynching stories
+
+```{r}
+
+stories <- str_replace_all(wp$sentence, "- ", "")
+stories_df <- tibble(stories,)
+
+# unnest includes lower, punct removal
+
+stories_tokenized <- stories_df %>%
+  unnest_tokens(word,stories)
+
+stories_tokenized
+```
+# Bigrams
+## We are now creating two word phrases but before the stop words are taken out
+
+```{r}
+wp_stories_bigrams <- stories_df %>%
+  unnest_tokens(bigram, stories, token="ngrams", n=2)
+
+wp_stories_bigrams_separated <- wp_stories_bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>% 
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word) %>% 
+  count(word1, word2, sort = TRUE) %>% 
+  filter(!is.na(word1))
+
+wp_stories_bigrams_separated
+
+```
+
 Compare and discuss!
+#top BP Bigrams
+```{r}
+bp_top5 <- head(bp_stories_bigrams_separated, 5)
+
+cat("The top five Black press bigrams were:\n")
+print(bp_top5)
+
+```
+
+#top WP Bigrams
+```{r}
+wp_top5 <- head(wp_stories_bigrams_separated, 5)
+
+cat("The top five white press bigrams were:\n")
+print(wp_top5)
+
+
+```
+
+print(paste0("A: The top five cities in the newspaper_city column are: ", 
+             paste(top_five, collapse = ", "), ". However, it's important to note that the dataset of ",nrow(blackindex_master), " rows has ", newspaper_city_count_na, " rows with a missing value in the newspaper_city column."))
+
+
+```{r}
+
+# Create a data frame with the top bigrams
+results_table <- data.frame(
+  Rank = 1:5,
+  `Black Press Bigrams` = bp_top5,
+  `White Press Bigrams` = wp_top5
+)
+
+#fix the column names
+results_table <- results_table %>% 
+  rename(bp1 = 2, bp2=3, bp_count=4, wp1=5, wp6=6, wp_count=7)
+
+results_table
+```
+
+
+```{r}
+library(kableExtra)
+
+# Formatting so you can read it in R studio Dark Mode
+kable(results_table, 
+      caption = "Top Five Bigrams in Black and White Press",
+      align = c('c', 'l', 'l')) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                full_width = FALSE,
+                position = "left",
+                font_size = 14) %>%
+  row_spec(0, bold = TRUE, color = "white", background = "#4C4C4C") %>%
+  column_spec(1, bold = TRUE, border_right = TRUE) %>%
+  row_spec(1:5, background = "white", color = "black")
+```
 
 
 
