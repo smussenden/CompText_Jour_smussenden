@@ -52,6 +52,8 @@ The term “lynch law” also served to normalize lynching since it characterize
 Another means for justifying lynching came with news reporting that suggested the mob was an independent force that could not be controlled. The phrases "was lynched by a mob" and "the hands of a mob" and taken "from jail by a mob" suggest the mob violence was its own independent force that could not be controlled. At the same time, the newspaper reports portrayed the crowd as crazed or socially undesirable.
 For example, the Intelligencer (Lexington, Mo) reported on August 6, 1890, that "a party of citizens had taken the law into their own hands" and hanged William Waters, a 17-year-old accused of murdering a local merchant.
 ```{r}
+# Get rest of data 
+# https://drive.google.com/drive/folders/1WWX7-2AbMWjnb_8fPYA1d4g-G_4s6XGq large files, the rest is in zip folders arrow_zip. Need to download these and put in zip_large
 # Ensure scientific notation is disabled
 options(scipen = 999)
 library(future)
