@@ -3,10 +3,497 @@ title: "Untitled"
 format: html
 editor: visual
 ---
+RQ1: When did lynching emerge as a recognizable and consistently covered story in US newspapers? 
+
+RQ2: Did predominantly white-owned newspapers consistently offer narratives that justified, excused or soft-pedaled lynching, and did this coverage change across time?
+We summarize our workflow below:
+We placed 60,042 scanned newspaper pages identified with our lynching search terms in a database.
+Student research assistants used a specialized Web interface called the “Article Extractor” and identified 11,396 lynching news articles. They drew boundaries around specific articles for extraction.
+We used software to extract text from the identified article. The pages first were rescanned to capture the best results.
+We examined the results and removed 202 articles primarily because the scanning software failed to capture the text properly. 
+We compiled the extracted text of 11,194 articles in a new database, which we then downloaded and analyzed using various software and machine learning techniques.
+
+RQ2: Did predominantly white-owned newspapers offer narratives that justified, excused or soft-pedaled lynching?
+Normalizing Lynching
+
+White news coverage served to normalize lynching by equating the lynch mob to “citizens,” or portraying lynching as a quasi-judicial act. Our analysis of lynching news examined specific keywords in context and revealed how the term "citizen" was often synonymous with the lynchers. “It was not an unruly midnight mob,” the New Ulm Weekly Review (Minnesota) reported in 1891. “It was simply a sullen, determined body of citizens who took into their hands what justice had ignominiously failed to do.” 
+
+Some articles characterized the lynch mob as orderly even when facts of the incident describe an orgy of violence. On Aug. 13, 1915, the Wauwatosa News (Wisconsin) reported a lynching in Shawnee, Oklahoma, describing “a quiet, orderly crowd armed to the teeth, which hanged Ed Berry to a Santa Fe railroad bridge, riddled his body with bullets and dispersed in as orderly a fashion as it had formed.” 
+
+The portrayal of the lynch mob as orderly was not unusual in white newspaper coverage in the 1800s and early 1900s (Brundage, 1991, 91). Our review of a sample of news coverage showed that while lynch mobs generally were portrayed as hostile, many news accounts across the country also described this violent lawlessness as an act of justice carried out by orderly groups of people. This review involved researchers examining lists of word pairs within the context of the specific articles.
+
+In the sample of predominantly white newspaper coverage from the 1880s, a decade of escalating violence against Black Americans, our review showed lynch mobs were described as orderly nearly one in five times. In other decades, the orderly mob narrative was present in 4% to 8% of the samples reviewed. 
+
+Another important finding: news coverage tended to describe the mob in a neutral fashion after the Civil War until the 1890s. Neutral mob portrayals accounted for more than 55% of mob narratives examined in the newspaper sample during the 1880s. Examples of neutral depictions include passive verbiage that evaded acknowledging the perpetrators of the violence. 
+
+In Figure 11, we classified newspaper portrayals of the mob in three major categories: hostile, neutral, and orderly, and then sought to determine whether the news accounts described the lynching as a form of justice. The categories could overlap since some articles portrayed the mob as orderly and the lynching as an act of justice. Categorized articles then were analyzed across decades.  
+
+
+
+Figure 11: Mob coverage, characterization. 
+
+From the 1880s through the 1920s, the mob often was characterized as hostile in our sample of predominantly white newspapers: news stories used words like “angry,” “excitement” or “infuriated” to describe the mob and included graphic depictions of violence. “Riddled with bullets” was a common phrase, and papers also described mobs that “stormed” the jail and “overpowered” law enforcement officers. Hostile portrayals in this sample reached their height at 80% of phrases examined in the 1940s. Yet this predominantly white newspaper sample was less likely to characterize the lynch mob as “hostile” in the 1880s to the 1920s, the peak of lynching activity. During this period, hostile portrayals ranged from 43% to 44% of two-word phrases in news coverage, well below the average 54% of hostile portrayals overall. 
+
+Legal System Distrust
+
+A recurring narrative involved local citizens’ impatience with the pace of legal proceedings and a desire to exact a quick form of justice against a suspected criminal. “When Judge Lynch's decree had been issued, there was no possibility for an appeal on hair-splitting technicalities, nor did sentimental pleas avail,” the Caucasian of Shreveport, Louisiana, in 1913 wrote. On some occasions, newspapers even predicted a lynching would occur, such as a 1902 report in the Alexandria (VA) Gazette (see Figure 12).
+
+
+Figure 12: Lynching Expected. (1902, July 23). Alexandria Gazette.
+
+In the 1830s, over half of lynch mob portrayals in our sample of predominantly white newspapers described some form of justice, as indicated in Figure 13. The justice narrative was present in more than a fifth of all phrases examined in the 1830s, 1840s, 1860s and 1880s. By the 1890s, newspapers’ justification of mob violence decreased to about 19%, and generally fell over the next 40 years. The study showed a spike to 20% “justice” in 1940, an outlier due to the small sample in that decade (n=15 for 1940, or 0.4% of the total sample).
+
+https://docs.google.com/document/d/10MxSSURUCSye9-6SCJ1CBSv54Sd0NidU/edit
+https://docs.google.com/document/u/0/d/1TxlhcnvLoRheILjJWCvbTEcFMMtHbViC/edit?fromCopy=true&ct=2
+
+
+Figure 13: Newspaper, lynch mobs and justice narrative. 
+The term “lynch law” also served to normalize lynching since it characterized mob violence as something quasi-judicial. Analyzing the phrase "lynch law" showed it was the top bigram phrase in each decade studied through 1919. The term was most prevalent in the pre-1870 articles. The term "judge lynch" and its variants, another phrase aimed at normalizing mob violence, was used through the 1890s and earlier but rarely appeared in the twentieth century.
+Another means for justifying lynching came with news reporting that suggested the mob was an independent force that could not be controlled. The phrases "was lynched by a mob" and "the hands of a mob" and taken "from jail by a mob" suggest the mob violence was its own independent force that could not be controlled. At the same time, the newspaper reports portrayed the crowd as crazed or socially undesirable.
+For example, the Intelligencer (Lexington, Mo) reported on August 6, 1890, that "a party of citizens had taken the law into their own hands" and hanged William Waters, a 17-year-old accused of murdering a local merchant.
+```{r}
+# Ensure scientific notation is disabled
+options(scipen = 999)
+library(future)
+library(furrr)
+library(zip)
+library(tibble)
+library(dplyr)
+library(stringr)
+
+# Dynamically set the number of workers to (total cores - 1)
+num_cores <- parallel::detectCores() - 1
+future::plan("multisession", workers = num_cores)  # Use multithreading with optimized workers
+
+# List files and create metadata
+arrow_files <- tibble(
+  files = str_replace_all(
+    list.files("build_american_stories_dataset/data_by_year/arrow/", full.names = TRUE),
+    "//",
+    "/"
+  ),
+  size = file.size(files) / 1024^2,
+  year = str_remove_all(files, "build_american_stories_dataset/data_by_year/arrow//articles_|.feather")
+) %>%
+  select(year, everything()) 
+
+# Filter files less than 100 MB
+arrow_files_list <- arrow_files %>%
+  #filter(size < 100) %>%
+  pull(files)
+
+# Test with a single file
+#arrow_files_small_test <- arrow_files %>% slice(1) %>% pull(files)
+
+# Create target directory
+zip_dir <- "build_american_stories_dataset/data_by_year/arrow_zip/"
+if (!dir.exists(zip_dir)) dir.create(zip_dir, recursive = TRUE)
+
+# Use multithreading to zip files
+furrr::future_walk(arrow_files_list, function(file_path) {
+  # Get the file name without the path
+  file_name <- basename(file_path)
+  # Define the target zip file path
+  zip_file_path <- file.path(zip_dir, paste0(file_name, ".zip"))
+  
+  # Zip the file without the nested folder structure
+  zip::zip(zip_file_path, files = file_path, mode = "cherry-pick")
+})
+
+# List files and create metadata
+arrow_files_zip <- tibble(
+  files = str_replace_all(
+    list.files("build_american_stories_dataset/data_by_year/arrow_zip/", full.names = TRUE),
+    "//",
+    "/"
+  ),
+  size = file.size(files) / 1024^2,
+  year = str_remove_all(files, "build_american_stories_dataset/data_by_year/arrow//articles_|.feather.zip")
+) %>%
+  select(year, everything()) 
+
+# Filter for files greater than 100mb
+arrow_files_zip_list_large <- arrow_files_zip %>%
+  filter(size > 99) %>%
+  pull(files)
+
+# move files in arrow_zip_list into a directory inside of arrow_zip called arrow_zip_large
+zip_dir_large <- "build_american_stories_dataset/data_by_year/arrow_zip/arrow_zip_large/"
+if (!dir.exists(zip_dir_large)) dir.create(zip_dir_large, recursive = TRUE)
+# move files in arrow_zip_list into a directory inside of arrow_zip called arrow_zip_large
+
+# update function below to simply MOVE files located at place on that list into folder called zip_dir_large not copy
+furrr::future_walk(arrow_files_zip_list_large, function(file_path) {
+  # Get the file name without the path
+  file_name <- basename(file_path)
+  # Define the target zip file path
+  zip_file_path <- file.path(zip_dir_large, file_name)
+  # Move the file
+  file.rename(file_path, zip_file_path)
+})
+
+```
+
+```{r}
+
+# Print a message for completion
+cat("Zipping completed using", num_cores, "workers.\n")
+
+
+
+
+# List files in the directory
+arrow_files <- list.files("build_american_stories_dataset/data_by_year/arrow/", full.names = TRUE)
+
+# Get file sizes and convert to MB
+arrow_files_sizes <- file.size(arrow_files) / 1024^2
+
+# Install and load required packages
+if (!requireNamespace("future", quietly = TRUE)) install.packages("future")
+if (!requireNamespace("furrr", quietly = TRUE)) install.packages("furrr")
+if (!requireNamespace("zip", quietly = TRUE)) install.packages("zip")
+library(future)
+library(furrr)
+library(zip)
+
+# Ensure the target directory exists
+zip_dir <- "build_american_stories_dataset/data_by_year/arrow_zip/"
+if (!dir.exists(zip_dir)) dir.create(zip_dir, recursive = TRUE)
+
+# Use parallel processing to zip files
+future::plan("multisession")
+furrr::future_map(arrow_files, function(file_path) {
+  # Get the file name without the path
+  file_name <- basename(file_path)
+  # Define the target zip file path
+  zip_file_path <- file.path(zip_dir, paste0(file_name, ".zip"))
+  # Zip the file
+  zip::zip(zip_file_path, file_path)
+})
+
+# Create a data frame with file names and sizes
+arrow_files_df <- data.frame(
+  file = arrow_files,
+  size_mb = arrow_files_sizes_mb
+)
+
+# Display the data frame
+print(arrow_files_df)
+```
+```{r}
+options(scipen=999)
+# list files in build_american_stories_dataset/data_by_year/arrow/
+arrow_files <- list.files("build_american_stories_dataset/data_by_year/arrow/", full.names = TRUE)
+# get file sizes for each file in build_american_stories_dataset/data_by_year/arrow/
+arrow_files_sizes <- file.size(arrow_files)
+# convert arrow_file_sizes to mb or gb
+arrow_files_sizes_mb <- arrow_files_sizes / 1024^2
+
+install.packages('future')
+library(future)
+install.packages('furrr')
+library(furrr)
+# in paralell, zip each file in build_american_stories_dataset/data_by_year/arrow/ to a folder called arrow_zip at same level as arrow folder
+future::plan("multisession")
+arrow_files <- arrow_files[1]
+# update to use the furrr package
+future_map(arrow_files, function(x) {
+  # get the file name without the path
+  file_name <- basename(x)
+  # zip the file
+  zip::zip(x, paste0("arrow_zip/", file_name, ".zip"))
+})
+future.apply::future_lapply(arrow_files, function(x) {
+  # get the file name without the path
+  file_name <- basename(x)
+  # zip the file
+  zip::zip(x, paste0("arrow_zip/", file_name, ".zip"))
+})
+
+# make a dataframe with the file names and sizes
+arrow_files_df <- data.frame(file = arrow_files, size_mb = arrow_files_sizes_mb) 
+```
+
+```{r}
+###
+# Load libraries
+###
+
+library(tidyverse)
+library(feather)
+library(arrow)
+library(tidyverse)
+library(tidytext)
+
+# Elmer for LLM calling https://elmer.tidyverse.org/index.html
+## To install ## #pak::pak("tidyverse/elmer")
+library(elmer)
+
+###
+# API Keys
+###
+# Set OPENAI_API_KEY in .Renviron file (probably at ~smussend root, not in folder)
+# Run to open renviron file to edit usethis::edit_r_environ() may need to restart R after
+# Check it is set Sys.getenv("OPENAI_API_KEY")
+
+```
+
+```{r}
+
+
+# Load data
+# read in the feather file
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1889.feather")
+
+df_clean <- df %>%
+  # make article lowercase, remove all punctuation and numbers
+  mutate(article = str_to_lower(article)) %>%
+  # remove punct
+  mutate(article = str_replace_all(article, "[[:punct:]]", " ")) %>%
+  # remove numbers
+  mutate(article = str_replace_all(article, "[[:digit:]]", " ")) %>%
+  # remove internal whitespace
+  mutate(article = str_squish(article)) 
+
+
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df_clean %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(1)
+
+# Extract first story
+text <- lynch$article[1]
+
+corrected_text <- type_object(
+  "Spellchecked article",
+  spellchecked_article = type_string("Correct spelling of the article")
+)
+
+chat <- chat_openai()
+data <- chat$extract_data(text, spec = corrected_text)
+
+lynch$article
+data$spellchecked_article
+
+```
+
+
+```{r}
+library(dplyr)
+library(stringr)
+library(purrr)
+library(hunspell)
+library(tidytext)
+library(SnowballC)
+
+
+
+
+# Spelling
+
+
+install.packages('hunspell')
+library(hunspell)
+lynch <- df_clean %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(10) %>%
+  mutate(misspelled = hunspell::hunspell(article)) 
+
+# Tokenize the articles into individual words
+lynch_tokens <- lynch %>%
+  unnest_tokens(word, article)
+
+# Get unique words
+unique_words <- unique(lynch_tokens$word)
+
+misspelled_words <- unique(unlist(hunspell(unique_words)))
+
+suggestions <- unlist(lapply(hunspell_suggest(misspelled_words), function(x) x[1]))
+
+word_list <- data.frame(
+  misspelled = misspelled_words,
+  suggested = suggestions,
+  stringsAsFactors = FALSE
+)
+
+x <- word_list %>%
+  filter(str_to_lower(misspelled) != str_to_lower(suggested)) 
+
+
+```
+
+```{r}
+
+###
+# Setup LLM
+###
+
+chat <- chat_openai(
+  model = "gpt-4o-mini",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+###
+# Test LLM
+###
+
+x <- chat$chat(
+  "What is the population of Canada?"
+)
+
+# https://grouper.umd.edu/grouper/grouperUi/app/UiV2Main.index?operation=UiV2Group.viewGroup&groupId=476bf26d4e524cb2935b2e6aad588679
+
+
+#install.packages('pak')
+pak::pak("tidyverse/elmer")
+library(elmer)
+
+# Reinitializing chat wipes its memory.  If you want to keep the memory, don't reinitialize.
+chat <- chat_openai(
+  model = "gpt-4o-mini",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = TRUE
+)
+live_console(chat)
+
+x <- chat$get_turns(
+  
+)
+```
+
+```{r}
+text <- readLines(system.file("examples/third-party-testing.txt", package = "elmer"))
+text <- paste(text, collapse = "\n")
+# url <- "https://www.anthropic.com/news/third-party-testing"
+# html <- rvest::read_html(url)
+# text <- rvest::html_text2(rvest::html_element(html, "article"))
+
+article_summary <- type_object(
+  "Summary of the article.",
+  author = type_string("Name of the article author"),
+  topics = type_array(
+    'Array of topics, e.g. ["tech", "politics"]. Should be as specific as possible, and can overlap.',
+    type_string(),
+  ),
+  summary = type_string("Summary of the article. One or two paragraphs max"),
+  coherence = type_integer("Coherence of the article's key points, 0-100 (inclusive)"),
+  persuasion = type_number("Article's persuasion score, 0.0-1.0 (inclusive)")
+)
+
+chat <- chat_openai()
+data <- chat$extract_data(text, spec = article_summary)
+cat(data$summary)
+
+str(data)
+```
+
+```{r}
+
+text <- "The new quantum computing breakthrough could revolutionize the tech industry."
+
+classification <- type_array(
+  "Array of classification results. The scores should sum to 1.",
+  type_object(
+    name = type_enum(
+      "The category name",
+      values = c(
+        "Politics",
+        "Sports",
+        "Technology",
+        "Entertainment",
+        "Business",
+        "Other"
+      )
+    ),
+    score = type_number(
+      "The classification score for the category, ranging from 0.0 to 1.0."
+    )
+  )
+)
+wrapper <- type_object(
+  classification = classification
+)
+
+chat <- chat_openai()
+data <- chat$extract_data(text, spec = wrapper)
+do.call(rbind, lapply(data$classification, as.data.frame))
+```
+
+```{r}
+system_prompt <- "You are an AI assistant that provides one sentence responses."
+text_content <- ContentText(text = "What is the population of Canada?")
+user_turn <- Turn(
+  role = "user",
+  contents = list(text_content)
+)
+# Call the chat_gemini function
+response <- chat_gemini(
+  system_prompt = system_prompt,
+  turn = list(user_turn),
+  #api_key = gemini_key(),
+  #model = "",
+  #api_args = list(),
+  echo = "text"
+)
+response
+```
+
+```{r}
+
+# https://elmer.tidyverse.org/reference/chat_bedrock.html
+###
+# Bedrock
+###
+
+chat_bedrock(
+  system_prompt = NULL,
+  turns = NULL,
+  model = NULL,
+  profile = NULL,
+  echo = NULL
+)
+```
+
+```{r}
+# https://github.com/tidyverse/elmer
+# https://elmer.tidyverse.org/reference/index.html
+# https://elmer.tidyverse.org/articles/structured-data.html
+
+###
+# Setup
+###
+
+library(feather)
+library(arrow)
+library(tidyverse)
+library(tidytext)
+
+# read in the feather file
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1922.feather")
+
+# read in list of filenames in build_american_stories_dataset/data_by_year/arrow/
+filenames <- list.files("build_american_stories_dataset/data_by_year/arrow/", full.names = TRUE)
+df_clean <- df %>%
+  # make article lowercase, remove all punctuation and numbers
+  mutate(article = str_to_lower(article)) %>%
+  # remove punct
+  mutate(article = str_replace_all(article, "[[:punct:]]", " ")) %>%
+  # remove numbers
+  mutate(article = str_replace_all(article, "[[:digit:]]", " ")) %>%
+  # remove internal whitespace
+  mutate(article = str_squish(article)) 
+
+
+lynch <- df_clean %>%
+  filter(str_detect(article, " lynch |lynching"))
+```
 
 ## Quarto
-Jakc regex
-"lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_num_matches    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"_num_matches    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_num_matches    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_num_matches    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_num_matches    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_num_matches    Unnamed: 0    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_start_idx    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_end_idx    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_cost    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_SEARCH_cost_threshold    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_start_idx    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_end_idx    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_cost    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_SEARCH_cost_threshold    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_start_idx    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_end_idx    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_cost    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_SEARCH_cost_threshold    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_start_idx    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_end_idx    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_cost    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_SEARCH_cost_threshold    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_start_idx    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_end_idx    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_cost    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"_start_idx    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"_end_idx    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"_cost    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_SEARCH_cost_threshold    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"_SEARCH_cost_threshold    batch    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_CLEANING_cost_threshold    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_CLEANING_cost_threshold    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_CLEANING_cost_threshold    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_CLEANING_cost_threshold    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_CLEANING_cost_threshold    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"_CLEANING_cost_threshold    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_passed_cleaning    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_passed_cleaning    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_passed_cleaning    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"_passed_cleaning    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_passed_cleaning    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"_passed_cleaning
+
+Jakc regex "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored" "(murderer\|fiend\|desperado\|brute)\W+((\w+\W+){1,2})?lynch(ed\|es\|ing)?(\W+\|$)"    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)" "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro" "mob\W+((\w+\W+){1,2})?(hung\|hang(ed\|ings?\|s)\|lynch(ed\|es\|ing)?)" "negro(e?s)?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_num_matches    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"\_num_matches "coloreds?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"_num_matches    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_num_matches    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_num_matches    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"\_num_matches Unnamed: 0 "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"\_start_idx "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"\_end_idx "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"\_cost "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"\_SEARCH_cost_threshold "coloreds?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"_start_idx    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"\_end_idx "coloreds?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"_cost    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"\_SEARCH_cost_threshold "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"\_start_idx "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"\_end_idx "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"\_cost "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"\_SEARCH_cost_threshold "negro(e?s)?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"_start_idx    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"\_end_idx "negro(e?s)?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"_cost    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"\_SEARCH_cost_threshold "mob\W+((\w+\W+){1,2})?(hung\|hang(ed\|ings?\|s)\|lynch(ed\|es\|ing)?)"\_start_idx "mob\W+((\w+\W+){1,2})?(hung\|hang(ed\|ings?\|s)\|lynch(ed\|es\|ing)?)"\_end_idx "mob\W+((\w+\W+){1,2})?(hung\|hang(ed\|ings?\|s)\|lynch(ed\|es\|ing)?)"\_cost "(murderer\|fiend\|desperado\|brute)\W+((\w+\W+){1,2})?lynch(ed\|es\|ing)?(\W+\|$)"_start_idx    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"\_end_idx "(murderer\|fiend\|desperado\|brute)\W+((\w+\W+){1,2})?lynch(ed\|es\|ing)?(\W+\|$)"_cost    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_SEARCH_cost_threshold    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"\_SEARCH_cost_threshold batch "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"\_CLEANING_cost_threshold "coloreds?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"_CLEANING_cost_threshold    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"_CLEANING_cost_threshold    "negro(e?s)?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"\_CLEANING_cost_threshold "mob\W+((\w+\W+){1,2})?(hung\|hang(ed\|ings?\|s)\|lynch(ed\|es\|ing)?)"\_CLEANING_cost_threshold "(murderer\|fiend\|desperado\|brute)\W+((\w+\W+){1,2})?lynch(ed\|es\|ing)?(\W+\|$)"_CLEANING_cost_threshold    "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?colored"_passed_cleaning    "coloreds?\W+((\w+\W+){1,2})?((was|were)\W+)?lynch(ed|es|ing)?(\W+|$)"\_passed_cleaning "lynchings?\W+of\W+(the\W+)?((\w+\W+){1,2})?negro"\_passed_cleaning "negro(e?s)?\W+((\w+\W+){1,2})?((was\|were)\W+)?lynch(ed\|es\|ing)?(\W+\|$)"_passed_cleaning    "mob\W+((\w+\W+){1,2})?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"_passed_cleaning    "(murderer|fiend|desperado|brute)\W+((\w+\W+){1,2})?lynch(ed|es|ing)?(\W+|$)"\_passed_cleaning
+
 ```{r}
 # install packages for reading feather files
 install.packages("feather")
@@ -28,8 +515,209 @@ df_clean <- df %>%
   # remove internal whitespace
   mutate(article = str_squish(article)) 
 
+
 lynch <- df_clean %>%
   filter(str_detect(article, " lynch |lynching"))
+
+
+
+```
+
+```{r}
+rm(df_clean)
+rm(df)
+gc()
+```
+
+```{r}
+
+gemini_chat <- function(prompt, history = list(), model = "1.5-flash", temperature = 0.5, maxOutputTokens = 1024) {
+  if (is.null(prompt)) {
+    cli_alert_danger("{.arg prompt} must not NULL")
+    return(NULL)
+  }
+
+  if (!is.character(prompt)) {
+    cli_alert_danger("{.arg prompt} must be given as a STRING")
+    return(NULL)
+  }
+
+  if (Sys.getenv("GEMINI_API_KEY") == "") {
+    cli_alert_danger("Please set the {.envvar GEMINI_API_KEY} with {.fn setAPI} function.")
+    return(NULL)
+  }
+
+  if (!(model %in% c("1.5-flash", "1.5-pro", "1.0-pro"))) {
+    cli_alert_danger("Error: Parameter 'a' must be one of '1.5-flash', '1.5-pro', '1.0-pro'")
+    return(NULL)
+  }
+
+  if (temperature < 0 | temperature > 2) {
+    cli_alert_danger("Error: Parameter 'temperature' must be between 0 and 2")
+    return(NULL)
+  }
+
+  model_query <- paste0("gemini-", model, "-latest:generateContent")
+
+  history <- history |>
+    addHistory(role = "user", item = prompt)
+
+  url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
+  api_key <- Sys.getenv("GEMINI_API_KEY")
+
+  sb <- cli_status("Gemini is answering...")
+  req <- request(url) |>
+    req_url_query(key = api_key) |>
+    req_headers("Content-Type" = "application/json") |>
+    req_body_json(list(
+      contents = history,
+      generationConfig = list(
+        temperature = temperature,
+        maxOutputTokens = maxOutputTokens
+      )
+    ))
+
+  resp <- req_perform(req)
+  cli_status_clear(id = sb)
+
+  candidates <- resp_body_json(resp)$candidates
+  outputs <- unlist(lapply(candidates, function(candidate) candidate$content$parts))
+
+  history <- history |>
+    addHistory(role = "model", item = outputs[[1]])
+
+  return(list(outputs = outputs, history = history))
+}
+
+#' @title Add history for chating context
+#' @description Add history for chating context
+#' @param history The history of chat
+#' @param role The role of chat: "user" or "model"
+#' @param item The item of chat: "prompt" or "output"
+#' @return The history of chat
+#'
+
+addHistory <- function(history, role = NULL, item = NULL) {
+  if(is.null(role)){
+    cli_alert_danger("provide role")
+    return(NULL)
+  }
+  if(is.null(item)){
+    cli_alert_danger("provide item")
+    return(NULL)
+  }
+  history[[length(history) + 1]] <-
+    list(
+      role = role,
+      parts = list(
+        list(text = item)
+      )
+    )
+  return(history)
+}
+
+gemini <- function(prompt, model = "1.5-flash", temperature = 0.5, maxOutputTokens = 1024) {
+  if (is.null(prompt)) {
+    cli_alert_danger("{.arg prompt} must not NULL")
+    return(NULL)
+  }
+
+  if (!is.character(prompt)) {
+    cli_alert_danger("{.arg prompt} must be given as a STRING")
+    return(NULL)
+  }
+
+  if (Sys.getenv("GEMINI_API_KEY") == "") {
+    cli_alert_danger("Please set the {.envvar GEMINI_API_KEY} with {.fn setAPI} function.")
+    return(NULL)
+  }
+
+  if (!(model %in% c("1.5-flash", "1.5-pro", "1.0-pro"))) {
+    cli_alert_danger("Error: Parameter 'a' must be one of '1.5-flash', '1.5-pro', '1.0-pro'")
+    return(NULL)
+  }
+
+  if (temperature < 0 | temperature > 2) {
+    cli_alert_danger("Error: Parameter 'temperature' must be between 0 and 2")
+    return(NULL)
+  }
+
+  model_query <- paste0("gemini-", model, "-latest:generateContent")
+
+  url <- paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query)
+
+  api_key <- Sys.getenv("GEMINI_API_KEY")
+
+  sb <- cli_status("Gemini is answering...")
+
+  req <- request(url) |>
+    req_url_query(key = api_key) |>
+    req_headers("Content-Type" = "application/json") |>
+    req_body_json(list(
+      contents = list(
+        parts = list(
+          list(text = prompt)
+        )
+      ),
+      generationConfig = list(
+        temperature = temperature,
+        maxOutputTokens = maxOutputTokens
+      )
+    ))
+
+  resp <- req_perform(req)
+
+  cli_status_clear(id = sb)
+
+  candidates <- resp_body_json(resp)$candidates
+  outputs <- unlist(lapply(candidates, function(candidate) candidate$content$parts))
+
+  return(outputs)
+}
+
+```
+
+```{r}
+gemini(prompt = "", model = "1.5-flash", temperature = 0.5, maxOutputTokens = 1024)
+```
+
+```{r}
+install.packages("gemini.R")
+library(gemini.R)
+
+setAPI("AIzaSyCjVW8ki7GODhBVPRVzg6d-pJWCXyYPckc") # check https://makersuite.google.com/app/apikey
+
+gemini("what time is it")
+
+
+article_id <- "8_1922-10-21_p1_sn83025514_00340586396_1922102101_0261"
+
+lynch_head <- lynch %>%
+  filter(str_detect(article, "negro")) %>%
+  slice(1:100)
+
+write_csv(lynch_head,"lynch_head.csv")
+
+class <- read_csv("class.csv") %>%
+  inner_join(lynch_head)
+
+indv <- class %>%
+  filter(str_detect(category, "Ind"))
+
+policy <- class %>%
+  filter(str_detect(category,"olicy"))
+
+
+
+glimpse(lynch_head)
+
+lynch_head$article
+
+
+```
+
+```{r}
+
 
 x <- lynch %>%
   mutate(lynch_count = str_count(article, "lynching")) 
@@ -59,3 +747,408 @@ lynch_tokens <- lynch %>%
 
 
 ```
+
+
+The Ida B. Wells Effect: A Novel Computational Analysis of US Newspaper Lynching Coverage, 1805-1963	
+Rob Wells, Ph.D., Philip Merrill College of Journalism, University of Maryland. ORCiD: 0000-0002-6061-558X. robwells@umd.edu
+
+Kathy Roberts Forde, Ph.D., Department of Journalism, University of Massachusetts Amherst
+
+Sean Mussenden, Philip Merrill College of Journalism, University of Maryland
+
+Mohamed Salama, Philip Merrill College of Journalism, University of Maryland
+
+Sasha Allen, Philip Merrill College of Journalism, University of Maryland[1] 
+ 
+Nov. 20, 2024
+ 
+Word Count: 8,009
+
+
+[1] Some of the findings were produced by students at the Philip Merrill College of Journalism, University of Maryland in a Fall 2023 research seminar called “Jour 389L: Lynching and the Press.” They are Sasha Allen; Marwa Barakat; Hailey Closson; Tyriana Evans; Jennifer Gable; Apurva Mahajan; Hannah Marszalek; Rachel McCrea; Khushboo Rathore; Emma Schmalz; Viviane Stackhouse; Hannah Ziegler. In addition, three Merrill College student researchers, Isabella Carrero-Baptista, Adrianna Navarro, and Dylan Manfre, provided important insights. Jack Raisel provided data support.
+
+
+
+
+
+
+
+
+
+The Ida B. Wells Effect: A Novel Computational Analysis of US Newspaper Lynching Coverage, 1805-1963	
+Introduction
+
+This project explores US newspaper reporting on lynching through a longitudinal examination of a large dataset of lynching news coverage stretching from 1805 through 1963. Lynching increased in the US South after the Civil War as a method to impede Black people from exercising their newly granted constitutional rights and to intimidate them into acquiescing to a white supremacist social, economic, and political order. By the 1920s, 95 percent of lynchings in the United States occurred in the South, and 90 percent of these lynching victims were Black (Brundage 2021, 84).
+
+Using a variety of search terms for lynching news, we captured 60,042 newspaper pages in the Library of Congress Chronicling America newspaper database. We used data tools to extract text and metadata from digitally scanned newspapers; these tools allowed for an examination of historical newspaper content, from article text to placement and display of articles on a page. Finally, we used a mix of computational textual analysis, topic modeling, and traditional content analysis to determine major themes and tropes in the news narratives.
+Our study fills a major gap in existing literature by offering a more comprehensive examination of how newspapers covered lynching across time. Our work is geographically and temporally broader than pioneering studies of lynching in the United States by W. Fitzhugh Brundage (2021), Michael J. Pfeifer (2011), and Charles Seguin (2019). Like these scholars, we found that white newspapers perpetuated racist narratives that contributed to racial violence, including the torture and deaths of Black Americans through the practice of lynching. 
+Our ability to examine lynching news coverage across a broad time period led to another important discovery: news coverage we examined proportionally began to exceed lynchings in 1897, according to a ratio measuring the two. Until this point in time, our research found, news coverage lagged in proportion to the number of lynchings. In addition, while actual lynchings peaked in the early 1890s and then began declining, news coverage picked up considerably in the 1890s. Why would newspaper editors wake up to the lynching story during this period? 
+One likely factor was the pioneering anti-lynching work of Black journalist Ida B. Wells, who launched two major journalistic investigations in 1892 and 1895 and went on a series of speaking tours in Great Britain in 1893 and 1894 that gained international attention. Besides the “Ida B. Wells effect,” other reasons for increased news coverage could be the spike in lynchings in the early 1890s, the rise of gruesome “spectacle lynchings” as public events, the expansion of the newspaper industry, the rise in sensational “yellow journalism,” the rise of Black activism in the public sphere, and the emergence of the New South movement, which viewed lynching as bad for the business climate.
+Implications of this finding are significant. The “Ida B. Wells effect” suggests Wells’s journalism helped expand the public discourse on lynching in white newspapers to an extent not previously understood by scholars. The finding also aligns with previous assertions that white newspapers substantially under-covered lynching at a time when racial violence was exploding in the post-Reconstruction era as Jim Crow was being built (Carrigan 2004, 133). 
+Our study also adds a new dimension to the historiography of lynching by comparing narratives in white and Black newspapers over time. The contrast in the coverage is stark. Black newspaper articles tended to emphasize civil society narratives such as the need for due process in the legal system. By contrast, many news reports in predominantly white newspapers sought to normalize the extra-legal violence of lynching by describing members of lynch mobs as “the best citizens” or “leading men” seeking to pursue justice. We also found that syntax in white newspaper coverage provided cover for lynch mobs, with the frequent use of passive construction to avoid naming actors responsible for racial violence. 
+Our findings build on recent research in Journalism and Jim Crow: White Supremacy and the Black Struggle for a New America (2021), which documents in rich detail how white Southern newspaper leaders not only reflected white supremacist social norms in their newspapers’ content but also played an active role in building white supremacist social and political economic systems across the Southern states for generations after the Civil War (Forde and Bedingfield). 
+It is important to note that Black and white newspapers in the US existed in largely separate public spheres from the early nineteenth century, when the first Black newspaper was published, through at least the mid-1960s. The majority of white newspapers across the time period we studied, with the occasional exception of the white Abolitionist press, largely did not cover Black American life. The coverage that did appear was broadly derogatory and racist. Black Americans published their own newspapers to build a counter public, to cover their communities, to “elevate the race,” and to mount fight after fight for civil rights, democratic inclusion, and justice.
+Literature Review
+
+Databases constructed by leading scholars have documented 5,039 lynchings from 1865-2020 (Updated Beck-Tolnay, 2022), with the bulk of the violence occurring after the US Civil War and waning around World War I. Tolnay and Beck (1995) verified 2,805 lynching victims in 10 southern states from 1882 through 1930, a project that extended the early lynching inventories created by the Tuskegee Institute (1912), the NAACP (1919), and the Chicago Tribune (1882). As historian Leon Litwack (1998) explained, “Between 1890 and 1917, to enforce deference and submission to whites, some two to three black southerners were hanged, burned at the stake, or quietly murdered every week” (284). Lynchings began to wane as the South witnessed economic and social progress in the wake of the First World War. Brundage (1993) wrote: “As the South became increasingly urbanized and industrialized, lynching would no longer be condoned and the practice finally would be suppressed" (9). 
+
+Lynching, as defined by the NAACP, is “the public killing of an individual who has not received any due process,” often carried out by lawless mobs (NAACP, 2003). While our study is guided by the NAACP definition, which has informed past scholarship, it is important to note that public understandings of what lynching was, and whether it was legitimate, varied widely across the time period we examine. As Christopher Waldrep (2002) demonstrated in his pathbreaking work The Many Faces of Judge Lynch, the term “lynching” has a long and complicated history that evolved after its first appearance in Virginia in the revolutionary period, when the term denoted a form of highly localized, extralegal communal justice that was yet to be racialized (2-12). The word “lynching” entered national discourse in the mid-1830s, when newspapers across the country reported on a mob that hung five white gamblers in Vicksburg, Mississippi, fearing they planned to foment a slave insurrection (27-38). By Reconstruction, a period of roughly 12 years following the end of the Civil War in 1865, lynching had come to mean community-supported violence that, though extralegal, was justified. During Reconstruction, white Southerners committed frequent violence against their formerly enslaved neighbors, including many killings, yet newspapers did not portray lynchings as a practice targeting Black people (67-78). It was not until the 1890s, Waldrep noted, that many Americans came to view lynching as a racialized practice, largely due to the anti-lynching reporting of journalist Ida B. Wells (109-116). While understandings of the legitimacy and racialized nature of lynching changed across our study’s time period, these shifts do not impede our analysis, which focuses on how newspaper narratives about lynching evolved across time. 
+
+In the antebellum period, lynching was used to enforce the law in rural and frontier communities with underdeveloped legal systems. Virginians in the revolutionary era used the term “lynching” in "a self-conscious attempt to legitimate their violence" (Waldrep 2002, 9). Lynching was a form of “rough justice” occurring in all regions of the country (Pfeifer, 2004, 3). Immigrants from North Britain in the mid-to-late eighteenth century introduced traditions of organized violence from England, Scotland, and Ulster to the American backcountry, setting the stage for the vigilantism that arose before the Civil War. This led to the creation of regulator movements among yeoman farmers, who engaged in severe but generally non-lethal violence (Pfeifer 2011, 14). This situation was particularly pronounced in frontier regions. By the early nineteenth century, this regulator violence shifted to hangings often described as lynchings (15). In California, editors of the San Francisco Alta California in 1851 defended lynching as a means for frontier communities to maintain social control and predicted the practice would end once the state urbanized (65).
+
+Enslavers rarely lynched those they enslaved because doing so would destroy an investment and a source of labor on plantations. After the end of slavery, lynchings significantly increased as a means of white control of the Black population in a post-slavery society. During Reconstruction, lynching became a highly racialized practice, although this shift in the practice was not widely recognized. Journalist Ida B. Wells and other Black American journalists and activists in the late nineteenth century documented the lynchings of Black Americans as part of a campaign to eliminate the practice. The shifting definitions and practices are significant and speak, as Lisa Arellano (2012) wrote, to “the complex narrative space that lynching stories often occupy” (12). 
+  
+Historical studies of lynching have largely focused on particular regions of the country and discrete periods. Pfeifer examined lynching from 1874-1947 in the context of the evolution of legal criminal processes in the rural South and frontier West (2004). Brundage’s case studies of Georgia and Virginia from 1880-1930 explored lynching as a mechanism for white social control of Blacks in the cotton economy (1993). Gonzales-Day examined lynching in California and the West, extending lynching scholarship beyond the South by documenting 352 mob killings from 1850 through 1936 (2006). Carrigan’s study of lynching violence in central Texas from 1836-1916 explored the cultural foundations for vigilante justice, noting the widespread acceptance of the practice as whites began to settle in Texas and faced conflicts with Mexicans and Native Americans (2004). Spectacle lynchings emerged in the late 1880s and early 1890s, Amy Louise Wood observed, at a time when Southern communities faced upheaval during a transformation into modern, more urban societies, where towns saw an influx of outsiders seeking employment and new industries that challenged the established social order (2009). Lynching rituals and their narrative representations served to enforce racial unity and superiority among whites (8). Our study, with its focus on newspaper coverage of lynching, examines such coverage across eras.
+Lynching and News Coverage
+By analyzing press coverage of lynching across several centuries, our study attempts to fill a major void in both lynching studies and journalism studies. As Brundage recently noted, “The inextricably bound histories of American journalism and lynching remain understudied and largely unacknowledged" (2021, 109). Prior academic research on lynching news coverage has been episodic, such as Harry Amana’s review of Ida B. Wells's investigations of lynching (2000); Arellano’s examination of Wells’s ability to dismantle the narrative of “ideal vigilantism” (2012); Dora Apel and Shawn Michelle Smith’s  examination of lynching photography, which describes the ethical and emotional complexities of viewing such visuals (2007); Waldrep’s study of the evolution of the term “lynching” (2002); and Kristin Gustafson’s study of white Minnesota newspaper coverage of a local 1920 lynching (2008). Brundage provided an excellent analysis of the racist tropes, melodrama, and errors in white newspaper lynching coverage, yet his analysis does not rely on an comprehensive examination of  US press coverage (2021). 
+Scholars have pointed out white newspapers’ tendency to provide graphic depictions of lynchings of Black victims and portray members of white mobs as orderly and upstanding citizens, thereby lynching normalized the behavior of lynch mobs (Brundage 2021; Eaton 1942). Newspapers also tended to print news briefs instead of more detailed stories of lynchings before the 1890s (Brundage, 2021). Other studies showed how white newspapers followed racist practices and beliefs in the broader society that helped reinforce white supremacy (Ayers 1992, 132, 153). Such reporting played out against the late nineteenth and early twentieth century emergence of sensational news coverage known as yellow journalism, where newspapers exploited issues such as sex, crime, and graphic content in stories and illustrations to maximize sales. Some newspapers engaged in “impostures and frauds of various kinds, such as ‘faked’ interviews and stories, misleading heads, pseudo-science” (Mott 1966, 539).
+While Black newspapers increased steadily in number after the Civil War, the first mass circulation Black paper, the Chicago Defender, did not appear until 1905. Many Black papers in the nineteenth century were short-lived due to economic constraints in the Black community and, in the South, due to anti-Black violence. As we will discuss, only 14% of the articles in our sample are from Black newspapers, and in the critical decade of the 1890s, only 5%. Finally, the Black and white press unsurprisingly covered lynching in vastly different ways: the Black press opposed and fought against lynching, while the white press frequently excused and justified it, and sometimes even encouraged it.
+
+Impact of Ida B. Wells
+Since the first Black newspaper emerged in the United States in 1827, the Black press has played an essential role in Black freedom and liberation struggles (Carroll 2017; Haywood 2018; Washburn 2006). In the late nineteenth and early twentieth centuries, as white America turned its back on Reconstruction’s constitutional and legislative promises of Black citizenship and equality, the Black press mobilized Black publics to fight against Jim Crow and for Black political, economic, and social rights. Jim Crow laws and norms were built from the end of Reconstruction through the 1960s to legalize and enforce racial segregation in the US. Almost all Black leaders of this period were also journalists (Haywood 2021). 
+Ida B. Wells was one of the most well-known, and militant, Black leaders of her era (Bay 2009, 191). Her 1892 editorial in the Memphis Free Speech and Headlight that protested the lynching of three Black businessmen, one of whom was a close friend, resulted in a white mob burning her newspaper offices; Wells herself avoided lynching because she was out of town at the time. She was forced into exile in the North, never to live in the South again. The searing experience led Wells to write Southern Horrors: Lynch Law in All Its Phases (1892) and Red Record: Tabulated Statistics and Alleged Causes of Lynching in the United States (1895), pamphlets that compiled lynching statistics from white newspapers to refute claims that Black men were sexual predators of white women (Amana 2000, Libertz 2021; Waldrep 2000). She described cases where white women engaged in consensual sex with Black men, which led to white outrage. Scholars in our own era have corroborated Wells’s arguments, identifying sexism and the vulnerable white woman as stereotypes in newspaper coverage of lynching, portrayals that framed Black men as the “violent black male rapist” and dangerous members of society (Freedman 2011, 497). Wells’s journalism was so powerful because it helped redefine lynching not as an act of community justice but as a racialized, violent system of controlling Black Americans. As Arellano (2012) observed, “Ida B. Wells effectively challenged lynchers in the most powerful way possible—by dismantling the narratives used to justify and define their violent practices” (111).
+Soon after her move North, Wells embarked on a speaking circuit and a public campaign to oppose lynching that immediately gained attention in the white press. The Philadelphia Inquirer, for example, in September 1892 described “the celebrated Miss Ida B. Wells” as a keynote speaker of the National Afro-American Press Association meeting where she “eloquently denounced the lynching so popular in some parts of the Union” (Inquirer, 1892). 
+Wells also worked with female temperance leaders both in the US and the United Kingdom, where she had speaking tours in 1893 and 1894. These high-profile speaking tours, which received widespread coverage in the British press, were designed to pressure the US government to act against lynching (195). Wells’s anti-lynching campaigns “permanently altered” British discourse and viewpoints on American lynchings, Sarah Silkey (2015) noted. Her second tour of Great Britain led to the formation of the English Anti-Lynching Committee, which included 20 members of Parliament and other English elites (Paisana 2016, 197).  However, the white American press generally did not accept Wells’s arguments and often vilified her. The New York Times, for example, called Wells “a slanderous and nasty-minded mulatress” and accused her of defaming white women of the South as willing sexual partners of Black men (“British Anti-lynchers” 1894). It was her “death-defying” work that ultimately led to Wells posthumously being awarded a Pulitzer Prize in 2020 (Diverse Education, 2020). 
+Research Questions
+
+We sought to answer three primary research questions, informed by lacunae and arguments in the existing literature, about US newspaper coverage of lynching from 1805 to 1963, and the long historical expanse of lynchings covered in the Library of Congress’s Chronicling America collection of digitized historical US newspapers. Our study asks questions meant to fill gaps in knowledge about lynching news coverage across time. 
+
+RQ1: When did lynching emerge as a recognizable and consistently covered story in US newspapers? 
+
+RQ2: Did predominantly white-owned newspapers consistently offer narratives that justified, excused or soft-pedaled lynching, and did this coverage change across time?
+
+RQ3: How did coverage in Black and white newspapers compare across time? Were the dominant narratives about lynching similar or different and in what ways?
+
+Methods
+
+This project is based on research using the Chronicling America newspaper database hosted by the Library of Congress, which at the time of this writing contained 4,051 digitized newspapers with online access to PDF images of some 21.4 million newspaper pages from 1756 to 1963 (Chronicling America). Such digitized newspaper collections offer significant convenience for press historians and other researchers but pose logistical obstacles for computational text research (Smith and Cordell 2018). Chronicling America and other digitized newspaper collections were first curated as Optical Character Recognition (OCR) software technology was evolving. As Yang, Torget, and Mihlacea (2011) noted, the format of some documents effectively prevents “scholars from using these sources in meaningful ways … scholars find themselves confined to performing only basic word searches across enormous collections” (96). 
+
+While commercial news databases such as ProQuest and Newspapers.com have much larger and complete holdings of newspapers, they do not allow academic researchers access to the entire database through an Application Programming Interface (or API). Researchers often are left to manually screenshot images and create separate PDF files, a process that restricts content analysis at large scale. Our study thus did not use these resources.
+
+Chronicling America is the most comprehensive US newspaper database that gives researchers full access to the underlying data, allowing our first-of-its-kind study of lynching news coverage across centuries. But there are limitations. Chronicling America has an uneven distribution of newspapers by state. Mississippi, Ohio, Louisiana, Tennessee and North Carolina are over-represented in the corpus; Pennsylvania, Wyoming, Massachusetts, and South Carolina are significantly underrepresented. We discovered a sharp drop-off in our search results after 1923, likely due to copyright restrictions on more recent titles. The uneven regional distribution limits our ability to make claims about regional news coverage. And we can make few claims about news coverage after 1923.
+
+We found multiple similar or identical accounts of a particular lynching that were printed in multiple newspapers both inside and outside the state where the crime occurred. These reprints were due to many newspapers’ reliance on wire service news reports of a lynching. In the nineteenth and early twentieth centuries, however, newspapers did not consistently cite the source of a wire service such as The Associated Press since it was considered routine information in the public domain (Guarneri 2017, 199). As a result, our analysis does not consider the yearly tallies of news coverage to represent discrete articles but rather a combination of republished wire news and discrete coverage. 
+
+The bulk of the lynching coverage in our sample was 9% in 1880; 22% in 1890; 27% in 1900; 17% in 1910; and 7% in 1920. See Figure 1. Decades preceding and following this period had less than 5% of the lynching coverage for the sample. For example, the 1940s coverage constituted barely 3% of our sample. 
+
+
+Figure 1: Yearly distribution of extracted newspaper articles on lynching from Chronicling America.
+
+We deployed a complex search using regular expressions to capture phrases such as “lynch law”; “mob hung / hang / hanged / lynch / lynched” etc. / “negro / es was / were lynched” etc.; / “judge lynch.” This search produced about 60,042 newspaper pages covering instances of lynching. We created a system to extract specific article text from Chronicling America at scale, which involved researchers highlighting specific articles in specialized software that would then be extracted into raw text. At that point, we used machine learning and computational textual analysis tools to analyze the text and newspaper narratives. 
+
+We summarize our workflow below:
+We placed 60,042 scanned newspaper pages identified with our lynching search terms in a database.
+Student research assistants used a specialized Web interface called the “Article Extractor” and identified 11,396 lynching news articles. They drew boundaries around specific articles for extraction.
+We used software to extract text from the identified article. The pages first were rescanned to capture the best results.
+We examined the results and removed 202 articles primarily because the scanning software failed to capture the text properly. 
+We compiled the extracted text of 11,194 articles in a new database, which we then downloaded and analyzed using various software and machine learning techniques.
+Through this process, we extracted about 19% of the overall corpus of 60,042 articles. The articles were extracted according to a stratified sample, performed in the R statistical software, that identified a subset that was representative of the entire corpus and proportionally matched distribution of articles by year. 
+Newspapers
+1: The Birmingham Age Herald (Alabama), white: 350 articles
+2: Arizona Republican (Arizona), white: 200 articles
+3: The Indianapolis Journal (Indiana), white: 190 articles
+4: The Broad Ax (Illinois), Black: 188 articles
+5: The Evening Times Republican (Iowa), white: 149 articles
+6: The Chicago Whip (Illinois), Black: 138 articles
+7: The Pittsburgh Courier (Pennsylvania), Black:  138 articles
+8: The San Francisco Call (California), white: 123 articles
+9: Atlanta Daily World (Georgia), Black: 118 articles
+10: Pine Bluff Daily Graphic (Arkansas), white: 118 articles
+As seen in Figure 2, midwestern newspapers accounted for 39% of our extracted lynching articles, followed by Southern newspapers, 34%; Western papers, 20%; and Northeastern newspapers, 8%.  Regions were determined by US Census designations (Census Regions and Divisions, 2021). 
+Regional Distribution
+
+Figure 2: Percent of newspaper pages by region
+
+Lynching Data
+The primary academic databases compiling known episodes of lynching include Tolnay and Beck’s A Festival of Violence: An Analysis of Southern Lynchings, 1882- 1930 (1995), a database now maintained by Bailey (Updated Beck-Tolnay, 2022), which fact-checks and updates the pioneering Tuskegee Institute Inventory (1931). Seguin and Rigby’s (2019) national database on lynchings is another important modern resource. We used the Updated Beck-Tolnay dataset to get the most complete picture of lynchings, one that provides a lynching inventory from 1865 to 2020 for all races and ethnicities. This data documents 5,871 incidents and 5,039 confirmed lynchings as seen in Figure 3. Our study examines newspaper coverage of Americans of all races and ethnicities across a broader time period. 
+
+                              Figure 3: Updated Beck-Tolnay (2022) lynching inventory
+
+
+The annual distribution of lynchings appears below in Figure 4, which shows a spike in 1868 and then again in 1893 before gradually tapering down across the late nineteenth and through the mid twentieth centuries. 
+
+
+Figure 4: Lynchings,1865-2020, Source: Updated Beck-Tolnay (2022)
+The data shows that in 1868, lynchings hit the first peak at 151, with Texas, Tennessee and Arkansas experiencing the most violence. This was primarily due to violence by the Ku Klux Klan and accelerated racial tensions during the Reconstruction Era (Crouch, 1984, 217-218; Harcourt, 2005, 52; Hild, 2002; Kato, 2007). An analysis of our newspaper sample found peak news coverage of lynching activity occurred between 1884-1901, corresponding closely with the rise and solidifying of the Jim Crow system of white supremacy. This is an important empirical finding, suggesting that lynching, and thus racial violence more broadly, was itself a feature of not only the Jim Crow social order but also the Jim Crow political economy, of which the white press was a key institution. 
+Topic Modeling
+
+We used machine learning and a grounded theory approach to discern major narratives in the 11,194 extracted news articles. One tool for finding lynching related tropes and archetypes involved examining two-word pairs, or bigrams, in the article text. We used the tidytext software package in R to tokenize news articles, a process where an article is broken down to a one word-per-row list, and then we analysed the top 10 to 20 bigrams over specific decades. Analysis of bigrams helped inform research for all aspects of this paper.
+
+Researchers used a topic modeling algorithm employing Latent Dirichlet Allocation, or LDA, a generative statistical model that essentially captures the proportion of words in a given document that are assigned to a topic. As Hase (2021) has explained, topic models don’t identify a single main topic per document. Rather, they  “identify the probabilities” that a specific topic would be present in a document. 
+Findings
+RQ1: When did lynching emerge as a recognizable and consistently covered story in US newspapers?
+The “Ida B. Wells” Effect
+Our analysis first compared the lynching news article sample, captured from Chronicling America to the reported incidents of lynching from the Updated Beck-Tolnay (Bailey, 2022) lynching inventory. The analysis shows news coverage in our sample lagged the actual incidence of lynching, but an important change began in 1893 when the gap between news coverage and actual lynchings began to narrow significantly. As seen in Figure 5, by 1897, news coverage in our sample exceeded actual lynchings until a sharp drop-off in 1923.
+
+Figure 5: The "Ida B. Wells" effect, showing news coverage exceeding lynching in 1897 after Wells's reporting.
+
+We compared total lynching victims to total count of news articles by year. We normalized both data points by producing a simple percentage of the whole statistic; for example, the total lynchings in a year were divided into the overall total in our data set. 
+In 1870, for example, there were 14 lynching news stories identified, or 0.12% of all articles in the sample, whereas there were 154 lynchings, or 2.63% of all lynchings in our lynching data set. Lynchings, on a proportional basis, led newspaper coverage in 1870 by 2.5 percentage points. Throughout the 1880s, news coverage in our sample continued to lag the incidences of lynching. By 1893, the gap between lynching and news began to narrow significantly. In that year there were 293 lynching articles, or 2.57% of all articles in the sample, versus 174 lynchings, or 2.96% of all lynchings. Lynchings led newspaper coverage by just 0.3 percentage points. 
+One major development in 1892 involved journalist Ida B. Wells’s publication of Southern Horrors: Lynch Law in All Its Phases and then embarkation on a high-profile anti-lynching campaign that involved two speaking tours in Great Britain in 1893 and 1894. In 1895, she published an expanded investigation of lynching, The Red Record: Tabulated Statistics and Alleged Causes of Lynching in the United States. Lynching news coverage clearly increased during this period, as seen in Figure 6. Wells’s reporting and speaking may have helped put lynching on the news agenda in a way that it had not been prior to this time.
+ 
+Figure 6: Detail of major events affecting lynching news coverage
+A search of news articles mentioning Ida B. Wells offers further evidence of her prominence and impact during this time period. The search of “Ida B Wells” within 5 words of “lynch” produced 869 results in Chroniciling America, with 67% from Black newspapers and 33% from white newspapers. The white newspaper mentions surged in 1894, with 120 results versus 5 the year before. By 1895, Wells received 82 mentions in white newspapers, greater than 68 in Black papers that year. The Washington, D.C. Evening Star, one of the largest papers by circulation in the capital, was the leading white newspaper mentioning Wells, followed by The Indianapolis Journal in Indianapolis and the Morning Call in San Francisco.
+
+The Ida B. Wells effect aligns with the theory of news waves. Annie Waldherr (2014) found journalists, not outside actors seeking to attract news coverage, tend to influence spikes in news coverage. "The self-reinforcing process of intermedia agenda setting between journalists with heterogeneous attention thresholds stands out as the key mechanism for generating this specific pattern of news waves," she wrote (868). Peter Vasterman determined that waves of news coverage about social problems are often based on in-depth media coverage that "widen[s] the ground they (journalists) cover" and expands the public understanding of the problem (2005, 516). Such was likely the case with Southern Horrors and Red Record, reportage that expanded and redefined lynching for national and international audiences. 
+
+Alternate Explanations
+Several other factors could account for the rise in news coverage of lynching during this time period. The newspaper business expanded dramatically around 1893. According to N. W. Ayer & Son's American Newspaper Annual lists, total US newspapers in 1889 grew 23% from 1893 to 19,855 titles. Overall, the number of newspapers doubled from 1880 through 1895 (N.W. Ayer & Sons, 1889). However, even accounting for the total news pages in our sample, the lynching news coverage escalated at a rate exceeding the addition of newspapers at the time.
+Another trend involved the rise of “yellow journalism” that emphasized sensational and lurid narratives. As Wood observed, “The melodramatic tone of pro-lynching rhetoric, with its tropes of helpless white women and villainous black men, itself pronounced lynching as theater” (2009, 10). At the same time, public spectacle lynchings began to emerge in the late 1880s, events that would naturally generate significant news coverage (Wood 2009, 43).   
+The rise of the New South movement could also account for some escalated news coverage. Beck suggested a backlash against lynchings began in the Progressive Era, a trend he attributed to the emergence of a strong state, consistent with the continued growth of the New South movement for industrial development: “The firm establishment of law and order is a prerequisite for industrialization and the continued presence of lynch mobs undermined that foundation” (2015, 136). Mob violence undermined this New South ideal in some ways, yet it was also part of the embedded white supremacy of the era (Bedingfield and Forde 2021, 1-30). Also, the Black public sphere and Black press gained prominence during the 1890s, which also could have contributed to the increased coverage (Haywood, 2021). Our research shows lynching news coverage peaked in 1903, partially because of two high-profile lynchings: Thomas Gilyard in Joplin, Missouri, after which a white mob attacked and burned the Black community in downtown, and George White in Wilmington, Delaware, which was a spectacle lynching involving thousands of onlookers. 
+The rise of spectacle lynchings after Reconstruction is yet another possible explanation for increased news coverage of lynching in the 1890s. These lynchings, which could draw thousands of spectators, typically generated significant news interest. The growing urbanization of the US during this time period, coupled with Black migration from farms to towns and cities, led to greater contact between Black and white citizens and in some cases, competition for labor. Such contact fed white anxiety and racism, and some lynchings transformed from largely clandestine activity to public spectacle designed to send a terrifying message about social control to the Black community. Scott, in her 2022 study of spectacle lynchings in Texas, observed how Michel Foucault’s concept of “‘excesses’ of torture” reinforced the power of the state: “The spectacle and theatricality of lynchings in Texas also reinforced the hegemony of the extrajudicial white mob and legitimated its defense of the social order that underlay white supremacy” (Scott, 2022, 15).
+During the 1890s, our study does not show the Black press as a significant factor in the news coverage sample. In that decade, our sample contains 2,356 predominantly white newspaper articles but just 117 Black press articles, or 5% of the total in that decade. Many Black newspapers publishing in the 1890s did not preserve archives, and many Black newspapers in our sample did not exist until after 1900. In our sample, Black newspapers became a significant presence in the 1910 decade, when they were 16% of the total sample (see the list of the top 10 newspapers represented in our sample, which contains 4 Black titles). Overall, our sample of 11,194 articles contained 1,604 Black press articles, or 14%, but the distribution of the Black press articles varied widely over the study period. 
+Figure 7: Distribution of Black press, predominantly white press sample by year
+Article Length, Placement
+Article length represents an important decision in the editorial process. Editors have historically devoted more space to topics deemed newsworthy. Generally speaking, lynching articles in our sample were short, averaging 163 words; see Figure 8 for average word count across decades. One extreme example was an 1899 one-sentence item in the Washburn (N.D.) Leader: “A Georgia negro is lynched and cut into hundreds of pieces” (Washburn Leader, 1899). 
+The average length fell from 268 words in 1830 to 137 in 1900 and then rose until the 1960s. The short article length in the first decade of the twentieth century is remarkable, given the high number of lynchings in that decade (853, or 15% of the overall total). Lynching articles tended to be longer in Black newspapers, averaging 310 words for 1850-1960, more than double the average 138 words in white-owned newspapers. 
+
+
+     Figure 8: Average article word count, 1800-1960
+
+
+Besides article length, another major editorial decision involves placement of the article on the page and within the issue. An article placed on page one signifies material an editor considered most prominent (Cotter, 2010, 75). Our analysis, seen in Figure 9, shows about 34% of all lynching articles, both Black and white newspapers, were on page one.
+
+
+Figure 9: Page number placement of lynching stories
+Examining this data by decade, the page one stories peaked at 45% of all lynching coverage in the 1920s, as seen in Figure 10. Oddly enough, three-quarters of all lynching news moved to the inside pages in the 1890s and 1900s, the decades of peak violence. 
+
+Figure 10: Page one stories by decade
+Metadata for Black newspapers showed a slightly higher percentage, with about 42% of lynching stories on page one. That figure increased in the 1900s, with 59% of Black press lynching stories on page one and continued in the 1910s, with 51% on page one.
+RQ2: Did predominantly white-owned newspapers offer narratives that justified, excused or soft-pedaled lynching?
+Normalizing Lynching
+
+White news coverage served to normalize lynching by equating the lynch mob to “citizens,” or portraying lynching as a quasi-judicial act. Our analysis of lynching news examined specific keywords in context and revealed how the term "citizen" was often synonymous with the lynchers. “It was not an unruly midnight mob,” the New Ulm Weekly Review (Minnesota) reported in 1891. “It was simply a sullen, determined body of citizens who took into their hands what justice had ignominiously failed to do.” 
+
+Some articles characterized the lynch mob as orderly even when facts of the incident describe an orgy of violence. On Aug. 13, 1915, the Wauwatosa News (Wisconsin) reported a lynching in Shawnee, Oklahoma, describing “a quiet, orderly crowd armed to the teeth, which hanged Ed Berry to a Santa Fe railroad bridge, riddled his body with bullets and dispersed in as orderly a fashion as it had formed.” 
+
+The portrayal of the lynch mob as orderly was not unusual in white newspaper coverage in the 1800s and early 1900s (Brundage, 1991, 91). Our review of a sample of news coverage showed that while lynch mobs generally were portrayed as hostile, many news accounts across the country also described this violent lawlessness as an act of justice carried out by orderly groups of people. This review involved researchers examining lists of word pairs within the context of the specific articles.
+
+In the sample of predominantly white newspaper coverage from the 1880s, a decade of escalating violence against Black Americans, our review showed lynch mobs were described as orderly nearly one in five times. In other decades, the orderly mob narrative was present in 4% to 8% of the samples reviewed. 
+
+Another important finding: news coverage tended to describe the mob in a neutral fashion after the Civil War until the 1890s. Neutral mob portrayals accounted for more than 55% of mob narratives examined in the newspaper sample during the 1880s. Examples of neutral depictions include passive verbiage that evaded acknowledging the perpetrators of the violence. 
+
+In Figure 11, we classified newspaper portrayals of the mob in three major categories: hostile, neutral, and orderly, and then sought to determine whether the news accounts described the lynching as a form of justice. The categories could overlap since some articles portrayed the mob as orderly and the lynching as an act of justice. Categorized articles then were analyzed across decades.  
+
+
+
+Figure 11: Mob coverage, characterization. 
+
+From the 1880s through the 1920s, the mob often was characterized as hostile in our sample of predominantly white newspapers: news stories used words like “angry,” “excitement” or “infuriated” to describe the mob and included graphic depictions of violence. “Riddled with bullets” was a common phrase, and papers also described mobs that “stormed” the jail and “overpowered” law enforcement officers. Hostile portrayals in this sample reached their height at 80% of phrases examined in the 1940s. Yet this predominantly white newspaper sample was less likely to characterize the lynch mob as “hostile” in the 1880s to the 1920s, the peak of lynching activity. During this period, hostile portrayals ranged from 43% to 44% of two-word phrases in news coverage, well below the average 54% of hostile portrayals overall. 
+
+Legal System Distrust
+
+A recurring narrative involved local citizens’ impatience with the pace of legal proceedings and a desire to exact a quick form of justice against a suspected criminal. “When Judge Lynch's decree had been issued, there was no possibility for an appeal on hair-splitting technicalities, nor did sentimental pleas avail,” the Caucasian of Shreveport, Louisiana, in 1913 wrote. On some occasions, newspapers even predicted a lynching would occur, such as a 1902 report in the Alexandria (VA) Gazette (see Figure 12).
+
+
+Figure 12: Lynching Expected. (1902, July 23). Alexandria Gazette.
+
+In the 1830s, over half of lynch mob portrayals in our sample of predominantly white newspapers described some form of justice, as indicated in Figure 13. The justice narrative was present in more than a fifth of all phrases examined in the 1830s, 1840s, 1860s and 1880s. By the 1890s, newspapers’ justification of mob violence decreased to about 19%, and generally fell over the next 40 years. The study showed a spike to 20% “justice” in 1940, an outlier due to the small sample in that decade (n=15 for 1940, or 0.4% of the total sample).
+
+
+
+
+
+Figure 13: Newspaper, lynch mobs and justice narrative. 
+The term “lynch law” also served to normalize lynching since it characterized mob violence as something quasi-judicial. Analyzing the phrase "lynch law" showed it was the top bigram phrase in each decade studied through 1919. The term was most prevalent in the pre-1870 articles. The term "judge lynch" and its variants, another phrase aimed at normalizing mob violence, was used through the 1890s and earlier but rarely appeared in the twentieth century.
+Another means for justifying lynching came with news reporting that suggested the mob was an independent force that could not be controlled. The phrases "was lynched by a mob" and "the hands of a mob" and taken "from jail by a mob" suggest the mob violence was its own independent force that could not be controlled. At the same time, the newspaper reports portrayed the crowd as crazed or socially undesirable.
+For example, the Intelligencer (Lexington, Mo) reported on August 6, 1890, that "a party of citizens had taken the law into their own hands" and hanged William Waters, a 17-year-old accused of murdering a local merchant.
+RQ3: How did coverage in Black and white newspapers compare across time? Were the dominant narratives about lynching similar or different and in what ways?
+
+Comparing Black v. White Press
+The Black press described lynching as a battleground in a broader social and political movement for equal rights, citing Jim Crow laws. White newspapers, by contrast, typically portrayed lynching victims as dehumanized “Black brutes,” deemed guilty before any trial. Lynchings often were portrayed as isolated events in white newspapers, devoid of broader political and social context. 
+
+The Black press generally emphasized that lynching was a crime and advocated for anti-lynching laws while also focusing on attempts to prosecute lynch mobs. As a result, legislation, investigations, and prosecutions of lynchers were dominant narratives in the Black press coverage as seen in Figure 14. 
+
+
+Figure 14: Common narratives in Black press coverage of lynching
+
+Figure 15 shows topics gathered from predominantly white newspapers that emphasized “negro lynching” where the victim’s race was a central thread in the articles. Criticism of lynching was notable until 1850 and then decreased until the 1930s. 
+
+
+Figure 15: Topics in predominantly white newspapers
+
+Some white press coverage framed lynching victims as guilty before any trial was held and printed sensationalized accounts of alleged assaults, or “outrages,” of white girls and women. The white female victim narrative in lynching stories was present in white newspapers but not as present in Black newspapers. 
+
+This difference in narratives can be partly explained by the variations of the time series in the two newspaper collections. The Black newspaper sample was not significant until the 1910 decade, which means there was little Black news coverage of the bloodiest period of lynching in the 1890s. The white newspaper sample, by contrast, captured the full range of lynching activity.
+
+Passage of state and federal laws to criminalize lynching was a top priority for Black leaders during the early twentieth century, an effort led by the NAACP, among other Black institutions, and the term “anti-lynching” emerged as a top two-word phrase between 1920 and 1949 in the sample of Black newspapers. In contrast, “anti-lynching” was rarely mentioned in the white press news sample until the 1920s, when it appeared as the 60th most prominent phrase, according to the analysis. Congress introduced anti-lynching legislation more than a dozen times between 1900 and 1940.
+
+In the Black press, common two-word phrases included “colored people,” “mob violence,” and “lynch law.” The phrase “Jim Crow” was seen often in Black newspapers, an example of how these journalists contextualized lynching with broader social trends. Adjusting for all bigrams, the phrase “Jim Crow” appeared nearly 9 times more frequently in the Black press versus the white press.
+
+The most consistent overlap between the white and Black press’s lynching coverage comes from phrases such as “grand jury” and “county jail” referencing these acts of violence. While the white press used “grand jury” just enough for it to appear in the top 10 two-word phrases for many decades, the Black press’s use of “grand jury” was a top phrase for most decades.  “Grand jury” was significant because it often described efforts to prosecute the lynch mob. 
+Conclusion
+Our research adds to the body of work on lynching by examining a sample of news coverage over nearly two centuries. This ability to analyze news narratives across such expansive periods of time allowed us to measure when lynchings became a topic covered consistently by newspapers. Our discovery that the early 1890s represented a turning point in the newspapers’ coverage of lynching provides additional insights and avenues of inquiry. One involves the role of accountability journalism in this period when investigative reporting was in its infancy. We see how Ida B. Wells’s journalism and speaking tours likely helped shape the broader public discourse about lynching. The full extent of Wells’s influence is difficult to discern due to competing trends at the time. 
+
+During this period, the newspaper industry expanded significantly, lurid reporting became popular in journalism, and other Black Americans were campaigning against lynching. Yet Wells published significant reports on lynching in 1892 and 1895, coupled with an overseas speaking tour that helped shape the public understanding of lynching as a racialized practice. Lynching news coverage in our sample exceeded the number of lynchings in 1897 and, after that point, news coverage continued to rise despite a decline in lynchings. A future study tracing Wells’s reports, rhetoric, and ideas through the newspaper coverage of the time could yield interesting results. 
+
+Our method of examining the proportion of lynchings to news coverage can also be a template for future historical inquiry involving events beyond lynching. It could help lend new understanding about how some social activists shaped the news agenda at critical junctures.
+
+Our work, which documents the prevalence of white supremacy and sensationalism in the content of white-run newspapers across broad expanses of time, further challenges the notion that these newspapers served all of society. Many white newspapers showed a lack of accountability by using passive construction to describe lynch mobs, thereby masking responsibility for the violence. The Black press emphasis on civil society narratives such as the legal system and equal justice showed how these editors were more interested in accountability than sensationalism. 
+
+Looking at the totality of lynching news coverage, white newspapers generally gave their readers brief and distorted accounts of extralegal violence in the country. Many effectively normalized lynching violence by equating it to a form of justice or by describing lynchers as citizens doing their duty. The passive construction of the writing made it unclear who was responsible. Lynching articles were short, an average 138 words in predominantly white newspapers versus an average 310 words in Black newspapers. More than two-thirds of the time, the lynching articles were placed inside the news pages and not one page one of white newspapers. Even during the bloodiest decades, the 1890s and 1900s, some two-thirds of all lynching news was placed on the inside pages. By contrast, more than half of the Black press lynching stories were on page one from 1870-1910. The fact that white-owned newspapers would dismiss a public and illegal execution of fellow citizens with such brief and buried news accounts speaks volumes about white editors’ disregard for Black Americans during this era.
+
+This research focused on news coverage after the US Civil War, but there is much work to be done in the antebellum period. A preliminary metadata analysis revealed news accounts of potentially hundreds of lynchings prior to the Civil War. Such research could be significant since the bulk of scholarship and analysis of lynching focuses on the period after the Civil War (Vandiver, 2006, 182). 
+
+The importance of this overall research into lynching and the press was captured well by Howard "Chuck" C. Copeland III, Pastor of Hosanna Community Church in Maryland. In 2023, Copeland spoke at the dedication of a lynching memorial for George Peck, who was lynched on Jan. 10, 1880, in Poolesville, Maryland:
+
+Until we deal with the blood, sweat, and tears that's in the ground up here, we're not going to get the healing and reconciliation that we're looking for. So my prayer is that we will just begin to continue to work together to illuminate this history. (Copeland)
+
+
+
+Appendix:
+Sample of Predominantly White Vs. Black Newspapers by Decade
+Figure 16: Distribution of study sample by decade
+
+Data Availaibility
+
+The data that support the findings of this study are available in The Ida B. Wells Effect: A Novel Computational Analysis of US Newspaper Lynching Coverage, 1805-1963	
+at OSF https://osf.io/7kpr4/?view_only=6c106acd6cb54f6f849e8c6f9098809f. 
+
+Acknowledgements
+The authors wish to thank Kathleen Best of the Howard Center for Investigative Journalism for her support of this research. Special thanks to two anonymous peer reviewers for their excellent insights.
+Disclosure Statement
+This research was supported by a $23,500 Social Data Science Seed Grant from the University of Maryland, a $3,000 grant from the Teaching and Learning Transformation Center at the University of Maryland, a $5,000 bridge loan from the Howard Center for Investigative Journalism at the University of Maryland and a $3,000 grant from the University of Massachusetts, Amherst Department of Journalism. 
+ORCID	
+The ORCID for the corresponding author, Rob Wells, is 0000-0002-6061-558X
+References
+
+Amana, Harry. 2000. “The Noose as an Early Communication Technology in the Anti-lynch Campaign.” American Journalism 17, no. 4: 53–54.
+Apel, Dora and Shawn Michelle Smith. 2007. Lynching Photographs. Oakland: University of California Press. 
+Arellano, Lisa. 2012. Vigilantes and Lynch Mobs: Narratives of Community and Nation. Philadelphia: Temple University Press.
+Ayers, Edward L. 1992. The Promise of the New South: Life After Reconstruction. Oxford: Oxford University Press.
+N. W. Ayer & Son’s American Newspaper Annual 1889. (1889). N.W. Ayer & Son. https://babel.hathitrust.org/cgi/pt?id=umn.31951001295674v&seq=13
+Bailey, A. (2022). Updated Beck Tolnay Inventory. https://uofi.app.box.com/s/99ggc6epn4rdvritke0h/folder/128720469575
+Bay, Mia. 2009. To Tell the Truth Freely: The Life of Ida B. Wells. New York: Hill and Wang. 
+Beach, Brian, and W. Walker Hanlon. 2022. “Historical Newspaper Data: A Researcher’s Guide and Toolkit.” National Bureau of Economic Research, NBER Working Paper Series, Working Paper 30135, June: 1-49. 
+Beck, E. M. 2015. “Judge Lynch Denied: Combating Mob Violence in the American South, 1877–1950.” Southern Cultures 21 no. 2 (Summer): 117–139.
+Brundage, W. Fitzhugh. 1993. Lynching in the New South: Georgia and Virginia, 1880-1930. 
+	Urbana: University of Illinois Press.
+Brundage, W. Fitzhugh. 2021. “The Press and Lynching.” In Journalism and Jim Crow: White Supremacy and the Black Struggle for a New America, edited by Kathy Roberts Forde and Sid Bedingfield, 83-114. Urbana: University of Illinois Press.  
+Brundage, W. Fitzhugh. 1997. Under Sentence of Death: Lynching in the South. Chapel Hill: University of North Carolina Press.
+Campney, Brent M.S. 2018. This Is Not Dixie: Racist Violence in Kansas, 1861-1972. 
+	Urbana: University of Illinois Press.
+Cao, Juan Tian Xia, Jintao Li, Yongdong Zhang, and Sheng Tang. 2009. “A Density-based Method for Adaptive LDA Model Selection.” Neurocomputing: An International Journal 72, no. 7–9, 1775–1781. https://doi.org/10.1016/j.neucom.2008.06.011
+Carrigan, William D. 2004. The Making of a Lynching Culture: Violence and Vigilantism in 
+Central Texas, 1836-1916. Urbana: University of Illinois Press. 
+Carroll, Fred. 2017. Race News: Black Journalists and the Fight for Racial Justice in the 20th Century. Urbana: University of Illinois Press.
+Chang, J. 2015. lda: Collapsed Gibbs Sampling Methods for Topic Models (R package version 1.4.2) [Computer software]. https://CRAN.R-project.org/package=lda
+Chronicling America. 2024. March 29. Chronicling America. https://chroniclingamerica.loc.gov/
+Clarke, James W. 1998. "Without Fear or Shame: Lynching, Capital Punishment and the Subculture of Violence in the American South." British Journal of Political Science 28, no. 2: 269-289. https://doi.org/10.1017/s0007123498000167
+Clark, Thomas Dionysius. 1948. "The Country Newspaper: A Factor in Southern Opinion, 1865-1930." The Journal of Southern History 14, no. 1: 3–33. https://doi.org/10.2307/2197708
+Cobb, James C. 1984. Industrialization and Southern Society, 1877–1984. Lexington: University of Kentucky Press.
+Cook, L. 2012. "Converging to a National Lynching Database: Recent Developments and the Way Forward." Historical Methods: A Journal of Quantitative and Interdisciplinary History 45 no. 2: 55-63.
+Copeland, H. C. "Chuck." 2023. October 22. Remarks at Dedication of George W. Peck Lynching Memorial Marker [Speech].
+Cotter, Colleen. 2010. News Talk: Investigating the Language of Journalism. Cambridge University Press. https://doi.org/10.1017/CBO9780511811975
+Crouch, B. A. (1984). A Spirit of Lawlessness: White Violence; Texas Blacks, 1865-1868. Journal of Social History, 18(2), 217–232. JSTOR.
+Eaton, Clement. 1942. "Mob Violence in the Old South." The Mississippi Valley Historical Review 29, no. 3: 351–370. https://doi.org/10.2307/1897915
+Equal Justice Initiative. 2017. Lynching in America: Confronting the Legacy of Racial Terror. https://eji.org/reports/lynching-in-america/?gad_source=1&gclid=Cj0KCQiApOyqBhDlARIsAGfnyMpWwXUJE3aCRxi-brYjIlFMRoWZdsPY0taZgDyX0S-QeqmFownDqS4aArXvEALw_wcB
+Frazier, Hampton. 2015. Lynchings in Kansas, 1850s–1932. Jefferson, NC: McFarland & Company, Inc.
+Forde, Kathy Roberts, and Sid Bedingfield, eds. 2021. Journalism and Jim Crow: White Supremacy and the Black Struggle for a New America. Urbana: University of Illinois Press. 
+Freeman, Elizabeth B. 2011. "‘Crimes Which Startle and Horrify’: Gender, Age, and the Racialization of Sexual Violence in White American Newspapers, 1870–1900." Journal of the History of Sexuality 20: 465–467.
+Giddings, Paula J. 2008. Ida, a Sword Among Lions: Ida B. Wells and the Campaign Against Lynching. New York: Amistad.
+González, Juan, and Joseph Torres. News for All the People: The Epic Story of Race and the American Media. New York: Verso, 2011.
+Gonzales-Day, Ken. 2006. Lynching in the West: 1850-1935. Durham, NC: Duke University Press.
+Griffiths, Thomas L., and Mark Steyvers. 2004. "Finding Scientific Topics." Proceedings of the National Academy of Sciences 101 (suppl 1): 5228–5235. https://doi.org/10.1073/pnas.0307752101
+Grün, Bettina K. 2024. topicmodels: Topic Models (R package version 0.2-16) [Computer software]. https://CRAN.R-project.org/package=topicmodels
+Guarneri, James. 2017. Newsprint Metropolis: City Papers and the Making of Modern Americans. University of Chicago Press.
+Gustafson, Kristin L. 2008. "Constructions of Responsibility for Three 1920 Lynchings in Minnesota Newspapers." Journalism History 34, no. 1: 42–53.
+Harcourt, E. J. (2005). Who Were the Pale Faces? New Perspectives on the Tennessee Ku Klux. Civil War History, 51(1), 23–266.
+Hase, Valerie. 2021. December 21. "Text as Data Methods in R - Applications for Automated Analyses of News Content" [University of Zurich]. https://bookdown.org/valerie_hase/TextasData_HS2021/
+Haywood, D’Weston. 2018. Let Us Make Men: The 20th-Century Black Press and a Manly Vision for Racial Advancement. Chapel Hill: University of North Carolina Press.
+Haywood, D’Weston. 2021. "Fight for a New America." In Journalism and Jim Crow: White Supremacy and the Black Struggle for a New America, edited by Kathy Roberts Forde and Sid Bedingfield, 57-80. University of Illinois Press.
+Hild, M. (2022). The Populist Movement and Nightriding in Arkansas. Arkansas Historical Quarterly, 81(3), 241–251.
+Jacobs, David, Jason T. Carmichael, and Stephanie L. Kent. 2005. "Vigilantism, Current Racial Threat, and Death Sentences." American Sociological Review 70 no. 4: 656-677. https://doi.org/10.1177/000312240507000406
+Jean, Sébastien, and W. Fitzhugh Brundage. 2002. "`Legitimizing Justice’: Lynching and the Boundaries of Informal Justice in the American South." In Informal Criminal Justice, edited by David Feenan, 157–178. Farnham, UK: Ashgate.
+Jones, Robert H. 1966. "Three Days of Violence: The Regulators of the Rock River Valley." Journal of the Illinois State Historical Society 59, no. 2 (Summer): 131–142. http://www.jstor.org/stable/40190375
+Kato, D. (2007). Law and (Dis)Order: Why the KKK Was so Successful in 1868. Conference Papers - Western Political Science Association, 1–35.
+Kreiling, Albert. 1993. "The Commercialization of the Black Press and the Rise of Race News in Chicago." In Ruthless Criticism, 176–203. University of Minnesota Press.
+Lancaster, Guy. 2017. Bullets and Fire: Lynching and Authority in Arkansas, 1840-1950. University of Arkansas Press.
+n/a. 2003. History of Lynching in America. NAACP. https://naacp.org/find-resources/history-explained/history-lynching-america
+Libertz, Daniel. 2021. "Amplification by Counterstory in the Quantitative Rhetoric of Ida B. Wells." Rhetoric Society Quarterly. https://www.tandfonline.com/doi/full/10.1080/02773945.2021.1947514
+Litwack, Leon F. 1998. Trouble in Mind: Black Southerners in the Age of Jim Crow. New York: Knopf.
+Monnay, Tatyana, and Eve Sampson. 2021. November 29. "AP Spread Racist Jim Crow-Era Coverage to a National Audience." Printing Hate. https://lynching.cnsmaryland.org/2021/11/28/ap-spread-racist-coverage-to-a-national-audience/
+Mott, Frank Luther. 1966. American Journalism—A History: 1690-1960 (Third). MacMillan.
+Newspapers.com. 2024. [dataset]. https://www.newspapers.com/
+n/a. 2011. Copyright Ownership of Online News: Cultivating a Transformation Ethos in America’s Emerging Statutory Attribution Right. 1–25. https://search-ebscohost-com.proxy-um.researchport.umd.edu/login.aspx?direct=true&db=ufh&AN=79594898&site=ehost-live
+n/a. 2021. December 16. "Census Regions and Divisions." U.S. Census Bureau, Geographic Terms and Definitions. https://www.census.gov/programs-surveys/popest/about/glossary/geo-terms.html#:~:text=The%20South%20region%20includes%20the,%3A%20Arkansas%2C%20Louisiana%2C%20Oklahoma%2C
+n/a. n.d. "Ida B. Wells." https://www.pulitzer.org/winners/ida-b-wells
+n/a. 2020. "Ida B. Wells Wins Posthumous Pulitzer Prize Special Citation." Diverse Education. https://www.diverseeducation.com/demographics/african-american/article/15106840/ida-b-wells-wins-posthumous-pulitzer-prize-special-citation
+Paisana, Joanne. 2016. "Playing the Transatlantic Card: The British Anti-Lynching Campaigns of Ida B. Wells." Diacrítica: 187–203. https://hdl.handle.net/1822/46204.
+Perloff, Robert M. 2000. "The Press and Lynchings of African Americans." Journal of Black Studies 30: 315–330.
+Pfeifer, Michael J. 2014. "At the Hands of Parties Unknown? The State of the Field of Lynching Scholarship." Journal of American History 101 (3): 832–846.
+Pfeifer, Michael J. 2004. Rough Justice: Lynching and American Society, 1874-1947. University of Illinois Press. Accessed July 10, 2024. http://catdir.loc.gov/catdir/toc/ecip0410/2003022987.html.
+Pfeifer, Michael J. 2011. The Roots of Rough Justice: Origins of American Lynching. 1st ed. University of Illinois Press. Accessed July 10, 2024. http://site.ebrary.com/id/10532357.
+Pfeifer, Michael. 2009. "The Origins of Postbellum Lynching: Collective Violence in Reconstruction Louisiana." Louisiana History: The Journal of the Louisiana Historical Association 50 (2): 189–201. Accessed July 10, 2024. http://www.jstor.org/stable/25478643.
+Printing Hate. (2021). Howard Center for Investigative Journalism. https://lynching.cnsmaryland.org/
+R Core Team (2022). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/. Researchers used R version 4.2.2 (2022-10-31) "Innocent and Trusting"
+Sam Houston State University. Lynching in Texas. https://www.lynchingintexas.org/  
+Schweinberger, M. (2023, February 5). Topic Modeling with R [The University of Queensland, Australia. School of Languages and Cultures]. Language Technology and Data Analysis Laboratory. https://ladal.edu.au/topicmodels.html
+Scott, T. A. (2022). Lynching and Leisure: Race and the Transformation of Mob Violence in Texas. University of Arkansas Press; JSTOR. https://doi.org/10.2307/j.ctv2f9xrtq
+Segal, Z. (n/a). Research Program: Uniformity and Diversity in the US Press, 1841-1884: A Computational Analysis of Space, Time and Content. n/a.
+Seguin, C., & Rigby, D. (2019). National crimes: a new national data set of lynchings in 
+the United States, 1883 to 1941. Socius, 5. https://doi.org/10.1177/2378023119841780
+Shepard, W. (2013). “Marshaled and Disciplined for War”: A Documentary Chronology
+ of Conflict in Hancock County, Illinois 1839-1845. The John Whitmer Historical Association Journal, 33(2), 79–131. http://www.jstor.org/stable/43200562  
+Silkey, Sarah L. (2015). Black Woman Reformer: Ida B. Wells, Lynching, and Transatlantic Activism. University of Georgia Press.
+Smith, D. A., Cordell, R., & Mullen, A. (2015). Computational Methods for Uncovering Reprinted Texts in Antebellum Newspapers. American Literary History, 27(3), E1–E15. https://doi.org/10.1093/alh/ajv029 
+Smith, D. A., & Cordell, R. (2018). A Research Agenda for Historical and Multilingual Optical Character Recognition," (p. 36). The Andrew W. Mellon Foundation. https://repository.library.northeastern.edu/downloads/neu:m043p093w?datastream_id=content
+Tolnay, S. E., & Beck, E. M. (1995). A Festival of Violence: An Analysis of Southern Lynchings, 1882- 1930. By Stewart E. Tolnay and E. M. Beck. University of Illinois Press.
+Trotti, M. A. (2008). The Body in the Reservoir: Murder and Sensationalism in the South. University of North Carolina Press.
+Tuchman, G. (1978). Making news: A study in the construction of reality. Free Press.
+Vandiver, Margaret. (2006). Lethal Punishment: Lynchings and Legal Executions in the South. Rutgers University Press.
+R Core Team. 2022. R: A Language and Environment for Statistical Computing. Vienna: R Foundation for Statistical Computing. https://www.R-project.org/.
+Schweinberger, Michael. 2023. "Topic Modeling with R." Language Technology and Data Analysis Laboratory. School of Languages and Cultures, The University of Queensland, Australia. February 5. https://ladal.edu.au/topicmodels.html.
+Segal, Z. n.d. Research Program: Uniformity and Diversity in the US Press, 1841-1884: A Computational Analysis of Space, Time and Content. n/a.
+Seguin, Charles, and David Rigby. 2019. "National Crimes: A New National Data Set of Lynchings in the United States, 1883 to 1941." Socius 5. https://doi.org/10.1177/2378023119841780.
+Shepard, William. 2013. “Marshaled and Disciplined for War: A Documentary Chronology of Conflict in Hancock County, Illinois 1839-1845.” The John Whitmer Historical Association Journal 33 (2): 79–131. http://www.jstor.org/stable/43200562.
+Silkey, Sarah L. 2015. Black Woman Reformer: Ida B. Wells, Lynching, and Transatlantic Activism. Athens: University of Georgia Press.
+Smith, David A., and Ryan Cordell. 2018. A Research Agenda for Historical and Multilingual Optical Character Recognition. The Andrew W. Mellon Foundation. https://repository.library.northeastern.edu/downloads/neu:m043p093w?datastream_id=content.
+Smith, David A., Ryan Cordell, and Abby Mullen. 2015. "Computational Methods for Uncovering Reprinted Texts in Antebellum Newspapers." American Literary History 27 (3): E1–E15. https://doi.org/10.1093/alh/ajv029.
+Thomas, Brook. 1997. American Literary Realism and the Failed Promise of Contract. Berkeley: University of California Press.
+Tolnay, Stewart E., and E. M. Beck. 1995. A Festival of Violence: An Analysis of Southern Lynchings, 1882-1930. Urbana: University of Illinois Press.
+Trotti, Michael Ayers. 2008. The Body in the Reservoir: Murder and Sensationalism in the South. Chapel Hill: University of North Carolina Press.
+Tuchman, Gaye. 1978. Making News: A Study in the Construction of Reality. New York: Free Press.
+Vandiver, Margaret. 2006. Lethal Punishment: Lynchings and Legal Executions in the South. New Brunswick: Rutgers University Press.
+Vasterman, Peter L. M. 2005. “Media-Hype: Self-Reinforcing News Waves, Journalistic Standards and the Construction of Social Problems.” European Journal of Communication 20, no. 4: 508-530. https://doi.org/10.1177/0267323105058254
+Waldherr, Annie. 2014. “Emergence of News Waves: A Social Simulation Approach.” Journal of Communication 64, no. 5: 852-873. https://doi.org/10.1111/jcom.12117
+Waldrep, Christopher. 2008. “National Policing, Lynching, and Constitutional Change.” The Journal of Southern History 74 (3): 586–626. https://www.jstor.org/stable/27650230.
+Waldrep, Christopher. 2002. The Many Faces of Judge Lynch. New York: Palgrave Macmillan.
+Washburn, Patrick S. 2006. The African American Newspaper: Voices of Freedom. Evanston, IL: Northwestern University Press.
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D'Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. "Welcome to the Tidyverse." Journal of Open Source Software 4 (43): 1686. https://doi.org/10.21105/joss.01686.
+Wells-Barnett, Ida B. Southern Horrors: Lynch Law in All Its Phases. Project Gutenberg Ebook, 1892. https://www.gutenberg.org/files/14975/14975-h/14975-h.htm.
+Wells, Ida B. 1895. The Red Record: Tabulated Statistics and Alleged Causes of Lynching in the United States. Chicago: Donohue & Henneberry.
+White, Walter. 1927. Rope & Faggot: A Biography of Judge Lynch. Notre Dame, IN: University of Notre Dame Press. http://www.aspresolver.com/aspresolver.asp?BLTC;S8345.
+Williams, Frank J., Virginia Williams, and Chicago Bar Association. 1882. Chicago Bar Association Lectures: Part One. Chicago: Fergus Printing Co. https://jstor.org/stable/community.33273302.
+Wood, Amy Louise. 2009. Lynching and Spectacle: Witnessing Racial Violence in America, 1890-1940. Chapel Hill: University of North Carolina Press.
+Work, Monroe. 1931. Negro Year Book: An Annual Encyclopedia of the Negro. Negro Year Book Publishing Co. https://www.google.com/books/edition/Negro_Yearbook/DKwZAAAAIAAJ?hl=en&gbpv=1.
+Work, Monroe. n.d. Negro Year Book: An Annual Encyclopedia of the Negro. Negro Year Book Publishing Co.
+Wright, George C. 1996. Racial Violence in Kentucky: Lynchings, Mob Rule and “Legal Lynchings”. Baton Rouge: LSU Press.
+Yang, Tze-I, Andrew J. Torget, and Rada Mihalcea. 2011. "Topic Modeling on Historical Newspapers." Proceedings of the 5th ACL-HLT Workshop on Language Technology for Cultural Heritage, Social Sciences, and Humanities, 96–104. https://aclanthology.org/W11-1513/.
+Zangrando, Robert L. 1980. The NAACP Crusade against Lynching. Philadelphia: Temple University Press.
+
+
+
+
+
+
+Newspaper Articles
+
+"National Afro-Americans: Colored Editors in Session Under Roof of Independence Hall." 1892. Philadelphia Inquirer (Philadelphia, PA), September 28. 
+"A Horrible Murder." 1899. The Democratic Advocate (Westminster, MD), March 25.  
+“British Anti-lynchers.” 1894. New York Times (New York, NY), August 
+"Criminal Record." 1899. Washburn Leader (Washburn, ND), August 5
+"Graves, John Temple." 1904. The Appeal (St. Paul, MN), October 15. 
+"Hennessy Avenged." 1891. New Ulm Weekly Review (New Ulm, MN), March 18. 
+"Left Dangling." 1895. The Wichita Daily Eagle (KS), August 27.
+"Lynch Law." 1913. The Caucasian (Shreveport, LA), December 18.
+"Lynching Expected." 1902. Alexandria Gazette (VA), July 23
+"Two More Lynchings." 1897. The Indianapolis Journal (IN), July 22. 
+The Intelligencer (MO), “Reported on August 6, 1890.”  
+"9 Negroes Hang in One Day." 1915. Wauwatosa News (WI), August 13.
+N/A. 1888. Semi-Weekly Interior Journal (Stanford, KY), August 21. 
+N/A. 1904. The Appeal (St. Paul, MN), October 15.
+
+
+
+
+
