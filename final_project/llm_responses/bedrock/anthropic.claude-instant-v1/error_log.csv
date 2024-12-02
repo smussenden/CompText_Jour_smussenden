@@ -1,1 +1,5 @@
 "timestamp","article_id","error"
+"2024-12-02 13:20:08","28_1922-11-01_p4_sn82014519_00414219202_1922110101_0007","Error in `req_perform()`:
+! HTTP 408 Request Timeout.
+• Model has timed out in processing the request. Try your request again.
+"
