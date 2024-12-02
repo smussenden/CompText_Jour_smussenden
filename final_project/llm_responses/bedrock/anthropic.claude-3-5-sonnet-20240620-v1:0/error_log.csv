@@ -1,1 +1,5 @@
 "timestamp","article_id","error"
+"2024-12-02 13:17:50","43_1922-08-08_p4_sn92051227_0041562105A_1922080801_0402","Error in `req_perform()`:
+! HTTP 503 Service Unavailable.
+• Bedrock is unable to process your request.
+"
