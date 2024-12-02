@@ -35,3 +35,7 @@
 ! HTTP 429 Too Many Requests.
 • Rate limit reached for model `gemma2-9b-it` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 15000, Used 15756, Requested 818. Please try again in 6.298s. Visit https://console.groq.com/docs/rate-limits for more information.
 "
+"2024-12-02 13:15:42","26_1889-12-31_p1_sn94053256_00271763037_1889123101_0624","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `gemma2-9b-it` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 15000, Used 14917, Requested 846. Please try again in 3.052s. Visit https://console.groq.com/docs/rate-limits for more information.
+"

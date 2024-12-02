@@ -1,1 +1,5 @@
 "timestamp","article_id","error"
+"2024-12-02 13:15:42","7_1922-03-15_p1_sn84020422_0051415630A_1922031501_0297","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama3-8b-8192` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 30000, Used 29951, Requested 1100. Please try again in 2.101s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
