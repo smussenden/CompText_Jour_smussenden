@@ -347,3 +347,31 @@
 ! HTTP 429 Too Many Requests.
 • Resource has been exhausted (e.g. check quota).
 "
+"2024-12-02 13:23:29","15_1889-08-19_p5_sn99021999_00206539641_1889081901_0370","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
+"2024-12-02 13:23:38","19_1889-10-18_p6_sn98066392_00296024442_1889101801_0135","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
+"2024-12-02 13:23:40","10_1889-07-25_p1_sn84023017_00414212992_1889072501_0484","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
+"2024-12-02 13:23:42","4_1889-01-05_p5_sn90059522_00175033385_1889010501_0039","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
+"2024-12-02 13:23:43","8_1889-11-09_p1_sn96060681_00211107169_1889110901_0810","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
+"2024-12-02 13:23:45","10_1889-09-07_p6_sn99021999_00206539641_1889090701_0547","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
+"2024-12-02 13:23:47","38_1889-09-05_p1_sn94053256_00271763037_1889090501_0232","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
