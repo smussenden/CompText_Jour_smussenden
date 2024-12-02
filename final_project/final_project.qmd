@@ -18,8 +18,18 @@ library(arrow)
 
 plan(multisession)
 
-df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1922.feather")
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1921.feather")
 
+
+x<- df %>%
+  filter(str_detect(tolower(article),"baseball")) %>%
+    filter(str_detect(tolower(article),"lynch"))
+
+
+sheet_write(x,"https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=0#gid=0", sheet="baseball")
+
+
+sheet_write(x,)
 # Pattern 1: Lynching of colored people
 pattern1 <- "lynching[s]?\\W+of\\W+(the\\W+)?(\\w+\\W+){1,2}?colored"
 # Matches:
@@ -88,6 +98,22 @@ df_clean <- df %>%
 
 
 
+not_lynch <- df_clean %>%
+  filter(!str_detect(article_clean,"lynch")) %>%
+  filter(jack_regex_match != TRUE)
+
+judge <- df_clean %>%
+  filter(str_detect(article_clean,"judge lynch")) 
+
+sheet_write(judge,"https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=0#gid=0", sheet="judge_lynch")
+
+not_lynch_sample <- not_lynch %>%
+  mutate(str_length = str_length(article_clean)) %>%
+  filter(str_length > 200) %>%
+  filter(str_length < 500) %>%
+  sample_n(50, seed=1)
+
+sheet_write(not_lynch_sample,"https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=0#gid=0", sheet="not_lynch_sample_1922")
 
 
 library(googlesheets4)

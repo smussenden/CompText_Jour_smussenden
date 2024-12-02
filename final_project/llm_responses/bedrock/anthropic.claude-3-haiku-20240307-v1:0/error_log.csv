@@ -1,0 +1,17 @@
+"timestamp","article_id","error"
+"2024-12-02 13:05:06","1_1889-01-20_p7_sn85042460_00280769241_1889012001_0197","Error in `req_perform()`:
+! HTTP 503 Service Unavailable.
+• Bedrock is unable to process your request.
+"
+"2024-12-02 13:05:09","5_1889-05-22_p1_sn86063034_00414181995_1889052201_1127","Error in `req_perform()`:
+! HTTP 503 Service Unavailable.
+• Bedrock is unable to process your request.
+"
+"2024-12-02 13:05:09","48_1889-08-28_p5_sn99021999_00206539641_1889082801_0450","Error in `req_perform()`:
+! HTTP 503 Service Unavailable.
+• Bedrock is unable to process your request.
+"
+"2024-12-02 13:07:05","10_1889-09-07_p6_sn99021999_00206539641_1889090701_0547","Error in `req_perform()`:
+! HTTP 503 Service Unavailable.
+• Bedrock is unable to process your request.
+"

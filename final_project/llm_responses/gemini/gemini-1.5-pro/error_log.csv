@@ -1,0 +1,5 @@
+"timestamp","article_id","error"
+"2024-12-02 13:12:45","5_1889-05-22_p1_sn86063034_00414181995_1889052201_1127","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
