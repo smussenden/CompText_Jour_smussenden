@@ -1,0 +1,885 @@
+---
+title: "quarto"
+format: html
+editor: source
+---
+
+```{r}
+#results_df <- future_map_dfr(model_provider_type_list, compare_model_output, sample_size=1)
+#results_df <- map_dfr(model_provider_type_list, compare_model_output, sample_size=1)
+
+
+
+library(tidyverse)
+library(elmer)
+library(future)
+library(furrr)
+library(arrow)
+
+plan(multisession)
+
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1922.feather")
+
+# Pattern 1: Lynching of colored people
+pattern1 <- "lynching[s]?\\W+of\\W+(the\\W+)?(\\w+\\W+){1,2}?colored"
+# Matches:
+# - "lynching" or "lynchings" followed by non-word chars
+# - "of" followed by non-word chars
+# - optional "the" followed by non-word chars
+# - 1-2 word characters followed by non-word chars (optional)
+# - "colored" at the end
+
+# Pattern 2: Descriptions of lynching perpetrators
+pattern2 <- "(murderer|fiend|desperado|brute)\\W+(\\w+\\W+){1,2}?lynch(ed|es|ing)?(\\W+|$)"
+# Matches:
+# - Starts with one of: murderer, fiend, desperado, brute
+# - Followed by non-word chars
+# - 1-2 word characters followed by non-word chars (optional)
+# - "lynch" with possible endings (ed/es/ing)
+# - Ends with non-word chars or string end
+
+# Pattern 3: Colored people being lynched
+pattern3 <- "colored[s]?\\W+(\\w+\\W+){1,2}?((was|were)\\W+)?lynch(ed|es|ing)?(\\W+|$)"
+# Matches:
+# - "colored" or "coloreds" followed by non-word chars
+# - 1-2 word characters followed by non-word chars (optional)
+# - Optional "was" or "were" followed by non-word chars
+# - "lynch" with possible endings
+# - Ends with non-word chars or string end
+
+# Pattern 4: Lynching of negro
+pattern4 <- "lynching[s]?\\W+of\\W+(the\\W+)?(\\w+\\W+){1,2}?negro"
+# Similar structure to pattern1, but ends with "negro"
+
+# Pattern 5: Mob violence
+pattern5 <- "mob\\W+(\\w+\\W+){1,2}?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"
+# Matches:
+# - "mob" followed by non-word chars
+# - 1-2 word characters followed by non-word chars (optional)
+# - Various forms of "hung/hang/lynch" with different endings
+
+# Pattern 6: Violence against negro(es)
+pattern6 <- "negro(e?s)?\\W+(\\w+\\W+){1,2}?((was|were)\\W+)?lynch(ed|es|ing)?(\\W+|$)"
+# Matches:
+# - "negro" with optional endings (es/s)
+# - 1-2 word characters followed by non-word chars (optional)
+# - Optional "was" or "were" followed by non-word chars
+# - "lynch" with possible endings
+# - Ends with non-word chars or string end
+
+# Key differences from original patterns:
+# 1. Double backslashes (\\) for R escaping
+# 2. Proper grouping with parentheses
+# 3. Removed unnecessary escaping of vertical bars in alternations
+# 4. Consistent handling of word boundaries
+
+regex_pattern <- paste0(pattern1,"|",pattern2,"|",pattern3,"|",pattern4,"|",pattern5,"|",pattern6)
+
+df_clean <- df %>%
+  # make article lowercase, remove all punctuation and numbers
+  mutate(article_clean = str_to_lower(article)) %>%
+  # remove punct
+  mutate(article_clean = str_replace_all(article_clean, "[[:punct:]]", " ")) %>%
+  # remove numbers
+  mutate(article_clean = str_replace_all(article_clean, "[[:digit:]]", " ")) %>%
+  # remove internal whitespace
+  mutate(article_clean = str_squish(article_clean)) %>%
+  mutate(jack_regex_match = str_detect(article_clean, regex_pattern))
+
+
+
+
+
+library(googlesheets4)
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df_clean %>%
+  filter(str_detect(article_clean, "lynch")) %>%
+  filter(str_detect(article_clean, "dyer")) %>%
+  head(300)
+
+
+
+lynch_jack <- df_clean %>%
+#  filter(str_detect(article, "lynch")) %>%
+  filter(jack_regex_match == TRUE) %>%
+  head(300)
+
+sheet_write(lynch,"https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=0#gid=0", sheet="lynch_1922")
+
+sheet_write(lynch_jack,"https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=0#gid=0", sheet="lynch_jack_1922")
+
+
+system_prompt_value <- "You are a friendly but terse assistant who follows orders clearly. You are an expert in classifying historical newspaper articles about lynchings of African-Americans in the United States between 1865 and 1922.  You will be shown article text that will fall into one or more of these categories: 1. A story describing a lynching event that has already happened. 2. A story about a crime alleged to have occured that suggests a lynching event might happen in the future as a response. 3. A story that is about federal, state or local policies or laws governing lynching or one that describes debate over those laws and does not refer to a specific past lynching event or a possible future lynching event. 4. A story that contains strings or partial strings typically found in stories associated with lynching -- like the word 'lynching' or 'hanging' -- but that are not actually about individual lynching events or lynching policy. Examples include a story describing a book written by someone named John Lynch; a story describing a baseball game in Lynchburg, Virginia; or a story about how to hang a picture on a wall. 5. A story that is not about lynching at all and contains no terms commonly associated with lynching. 6. Other (for stories that do not fit into any of the above categories). Your job is to spellcheck each story first, then select one -- and only one -- of the classification categories. You should return a valid json object -- and only a valid json object -- nothing more, nothing less. The object should have three keys: 'spellchecked_story',  'category_name' and 'explanation'. The value of 'spellchecked_story' should be the corrected spelling of the article. Remove any characters that will prevent it from being parsed as valid json. The value of 'category_name' should be the category name. The category name should be one of the following shorhanded versions of the longer description above: 1 Past lynching event, 2 Possible future lynching, 3 Lynching policy/law, 4 Contains lynching terms, not about lynching, 5 Contains no lynching terms, not about lynching, 6 Other. The value of 'explanation' should be a brief explanation of why you chose the category or categories you did, including keywords or terms that support the decision.This is an example of a properly formatted json object. Do not deviate from this format:{ \"spellchecked_story\": \"spellchecked story text\", \"category_name\": \"category name value\", \"explanation\": \"explanation value\" }.  Do not start your response with ```json and do not end your response with ```.  A properly formatted response should always begin with a { and end with a }"
+  
+#sample_size <- 1
+#model_provider_type_list <- list("openai_o1-preview")
+#model_provider_type <- "bedrock_amazon.titan-embed-text-v1"
+
+#model_provider_type <- "bedrock_meta.llama3-1-70b-instruct-v1:0"
+#model_provider_type <- "bedrock_amazon.titan-text-lite-v1"
+#model_provider_type <- "bedrock_cohere.command-text-v14"
+#model_provider_type <- "bedrock_anthropic.claude-3-5-sonnet-20240620-v1:0"
+
+#model_provider_type <- "bedrock_anthropic.claude-3-5-sonnet-20241022-v2:0"
+#model_provider_type <- "bedrock_anthropic.claude-3-5-sonnet-20240620-v1:0"
+#model_provider_type <- "bedrock_anthropic.claude-instant-v1"
+model_provider_type <- "gemini_gemini-1.5-pro"
+model_provider_type <- "gemini_gemini-1.5-flash"
+model_provider_type <- "gemini_gemini-1.5-flash-8b"
+model_provider_type <- "gemini_gemma-2-2b-it"
+model_provider_type <- "gemini_gemma-2-9b-it"
+model_provider_type <- "gemini_gemma-2-27b-it"
+model_provider_type <- "gemini_learnlm-1.5-pro-experimental"
+model_provider_type <- "gemini_gemini-exp-1114"
+model_provider_type <- "gemini_gemini-exp-1121"
+
+model_provider_type <- "gemini_gemini-exp-1121"
+
+sample_size <- 1
+compare_model_output <- function(model_provider_type, sample_size=1) {
+  # Validate input
+  if (!is.character(model_provider_type) || length(model_provider_type) != 1) {
+    stop("model_provider_type must be a single character string")
+  }
+  
+  # Create base dataframe with sample
+  result_df <- lynch %>%
+    slice(1:sample_size)
+  
+  # Extract articles
+  articles <- result_df %>%
+    pull(article)
+  
+  # Split provider and model type
+  parts <- str_split(model_provider_type, "_")[[1]]
+  if (length(parts) != 2) {
+    stop("model_provider_type must be in format 'provider_model'")
+  }
+  
+  model_provider <- parts[1]
+  model_type <- parts[2]
+  
+  # Add provider and model columns
+  result_df$provider <- model_provider
+  result_df$model <- model_type
+  
+  # Initialize chat client based on provider
+  chat <- if (model_provider == "ollama") {
+    chat_ollama(
+      model = model_type,
+      system_prompt = system_prompt_value,
+      echo = FALSE
+    )
+  } else if (model_provider == "groq") {
+    chat_groq(
+      model = model_type,
+      system_prompt = system_prompt_value,
+      echo = FALSE
+    )
+  } else if (model_provider_type %in% c("openai_o1-preview","openai_o1-mini")) {
+    chat_openai(
+      model = model_type,
+      #system_prompt = system_prompt_value,
+      echo = FALSE
+    )
+  } else if (model_provider == "openai") {
+    chat_openai(
+      model = model_type,
+      system_prompt = system_prompt_value,
+      echo = FALSE
+    )
+  } else if (model_provider == "gemini") {
+    chat_gemini(
+      model = model_type,
+      system_prompt = system_prompt_value,
+      echo = FALSE
+    )
+  } else if (model_provider == "bedrock") {
+    chat_bedrock(
+      model = model_type,
+      #system_prompt = system_prompt_value,
+      echo = FALSE
+    )
+  } else {
+    stop("Unsupported model provider: ", model_provider)
+  }
+  i <- 1
+  # Process each article and collect results
+  results <- lapply(seq_along(articles), function(i) {
+    text <- articles[i]
+    if (model_provider == "bedrock" | model_provider_type %in% c("openai_o1-preview","openai_o1-mini")) {
+      text <- paste0("Instructions: ", system_prompt_value,"\n Article to process: ", text)
+    }
+    tryCatch({
+      response <- chat$chat(text)
+      # Add error handling for JSON parsing
+      response_clean <- gsub("^```json", "", response)
+      response_clean <- gsub("```$", "", response_clean)
+      response_clean <- gsub("```", "", response_clean)
+      
+      #response_clean <- gsub("^```json", "", response)
+      #response_clean <- gsub("```$", "", response_clean)
+      response_clean <- gsub("\\\\n", "", response_clean)  # Remove escaped newlines
+      response_clean <- gsub("\\\\\"", "'", response_clean)  # Replace escaped quotes
+      
+     # parsed <- jsonlite::fromJSON(response_clean)
+
+      parsed <- jsonlite::fromJSON(response_clean )
+      
+      # Return a list with default values if any field is missing
+      list(
+        spellchecked_story = parsed$spellchecked_story %||% NA_character_,
+        category_name = parsed$category_name %||% NA_character_,
+        explanation = parsed$explanation %||% NA_character_,
+        raw_response = response,
+        raw_response_clean = response_clean
+      )
+    }, error = function(e) {
+      response_clean <- gsub("^```json", "", response)
+      response_clean <- gsub("```$", "", response_clean)
+      # Print detailed error message
+      warning(sprintf(
+        "Row %d: Failed to parse response for %s model %s.\nFull response: %s",
+        i,
+        model_provider,
+        model_type,
+        response,
+        response_clean
+      ))
+      list(
+        spellchecked_story = NA_character_,
+        category_name = NA_character_,
+        explanation = NA_character_,
+        raw_response = response,
+        raw_response_clean = response_clean
+      )
+    })
+  })
+  
+  # Convert results list to dataframe safely
+  results_df <- do.call(rbind.data.frame, results)
+  
+  # Add all columns including raw response
+  result_df$spellchecked_story <- results_df$spellchecked_story
+  result_df$category_name <- results_df$category_name
+  result_df$explanation <- results_df$explanation
+  result_df$raw_response <- results_df$raw_response
+  results_df$raw_response_clean <- results_df$raw_response_clean
+  print(paste0("finished processing ", model_provider_type))
+  print(token_usage())
+  print(result_df)
+  return(result_df)
+}
+
+
+
+ollama_model_provider_type_list <- list(
+  
+###
+# Installed ollama models
+###  
+  
+# Ollama working currently
+  
+## Google  
+#"ollama_gemma2:2b", # Ran
+#"ollama_gemma2:27b", # Ran
+#"ollama_gemma2:9b", # Ran
+#"ollama_gemma:2b", # Ran
+
+## IBM
+#"ollama_granite3-dense:8b",# Ran
+
+## Meta
+#"ollama_llama2:70b", # Ran 
+#"ollama_llama3.1:405b", #Failed
+# "ollama_llama3.1:70b", # Ran
+# "ollama_llama3.1:8b", # Ran
+# "ollama_llama3.2:1b", # Ran
+# "ollama_llama3.2:3b", # Ran
+# "ollama_llama3.2:latest", # Ran
+# "ollama_llama3:70b", # Ran
+# "ollama_llama3:8b", # Ran
+
+## Mistral
+#"ollama_mistral-large:latest",#Failed
+#"ollama_mistral-small:22b",#Ran
+#"ollama_mistral:7b",#Ran
+#"ollama_mixtral:8x22b",#failed
+
+## Microsoft
+#"ollama_phi3:14b",#Ran
+
+## Alibaba
+#"ollama_qwen2.5:72b",#Ran
+#"ollama_qwq:latest",#Ran
+
+# Ollama doesn't work or needs mod
+  
+)
+
+cloud_model_provider_type_list <- list(
+
+###
+# OpenAI models
+###
+
+# Working currently
+"openai_gpt-4o", # works
+"openai_gpt-4o-mini", # works
+"openai_gpt-4-turbo", # works
+"openai_gpt-4-turbo-preview", # works
+"openai_gpt-3.5-turbo", # works
+"openai_o1-preview",# works  
+"openai_o1-mini",# works
+
+###
+# Groq Google
+###
+
+"groq_gemma2-9b-it",# works
+"groq_gemma-7b-it",# works
+
+###
+# Groq Meta
+###
+"groq_llama3-groq-70b-8192-tool-use-preview",# works
+"groq_llama3-groq-8b-8192-tool-use-preview",# works
+"groq_llama-3.1-70b-versatile",# works
+"groq_llama-3.1-8b-instant",# works
+"groq_llama-3.2-1b-preview",# works
+"groq_llama-3.2-3b-preview",# works
+"groq_llama3-70b-8192",# works
+"groq_llama3-8b-8192",# works
+# "groq_llama-3.1-70b-specdec",# does not work
+# "groq_llama-guard-3-8b",# does not work
+###
+# Groq Mistral
+###
+
+"groq_mixtral-8x7b-32768",# works
+
+###
+# Bedrock Claude
+###
+
+"bedrock_anthropic.claude-3-5-sonnet-20240620-v1:0", # works
+"bedrock_anthropic.claude-v2:1", # works
+"bedrock_anthropic.claude-v2",# works
+"bedrock_anthropic.claude-instant-v1", # works
+"bedrock_anthropic.claude-3-haiku-20240307-v1:0", # works
+"bedrock_anthropic.claude-3-sonnet-20240229-v1:0", # works
+"bedrock_anthropic.claude-3-opus-20240229-v1:0", # works
+# "bedrock_anthropic.claude-3-5-sonnet-20241022-v2:0", # does not work
+# "bedrock_anthropic.claude-3-5-haiku-20241022-v1:0", # does not work
+# "bedrock_anthropic.claude-3-opus-20240229-v1:0", # does not work
+
+###
+# Bedrock Cohere
+###
+
+"bedrock_cohere.command-text-v14", # works
+"bedrock_cohere.command-light-text-v14", # works
+"bedrock_cohere.command-r-v1:0", # works
+"bedrock_cohere.command-r-plus-v1:0", # works
+
+###
+# Bedrock ai21
+###
+"bedrock_ai21.jamba-1-5-large-v1:0", # this works
+"bedrock_ai21.jamba-1-5-mini-v1:0", # this works
+
+###
+# Bedrock Meta
+###
+
+"bedrock_meta.llama3-70b-instruct-v1:0", # this works
+
+###
+# Bedrock Amazon
+###
+
+#"bedrock_amazon.titan-text-lite-v1", # this works but useless
+"bedrock_amazon.titan-text-premier-v1:0",# this works
+
+###
+# Google Gemini
+###
+"gemini_gemini-1.5-pro", #works
+"gemini_gemini-1.5-flash",#works
+"gemini_learnlm-1.5-pro-experimental",#works
+"gemini_gemini-exp-1114",#works
+"gemini_gemini-exp-1121" #works
+# "gemini_gemini-1.5-flash-8b", returns blank
+# "gemini_gemma-2-2b-it", does not work
+# "gemini_gemma-2-9b-it", does not work
+# "gemini_gemma-2-27b-it", does not work
+)
+
+
+results_df <- map_dfr(model_provider_type_list, compare_model_output, sample_size=1)
+```
+
+
+
+
+
+
+```{r}
+library(elmer)
+library(tidyverse)
+
+chat <- chat_openai(
+  model = "gpt-4o-mini",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+
+# Load data
+# read in the feather file
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1889.feather")
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(1)
+
+# Extract first story
+text <- lynch$article[1]
+
+
+
+# Load data
+# read in the feather file
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1889.feather")
+
+df_clean <- df %>%
+  # make article lowercase, remove all punctuation and numbers
+  mutate(article = str_to_lower(article)) %>%
+  # remove punct
+  mutate(article = str_replace_all(article, "[[:punct:]]", " ")) %>%
+  # remove numbers
+  mutate(article = str_replace_all(article, "[[:digit:]]", " ")) %>%
+  # remove internal whitespace
+  mutate(article = str_squish(article)) 
+
+
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df_clean %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(2)
+
+# Extract first story
+text <- df$article[1]
+
+chat <- chat_openai(
+  model = "gpt-4o-mini",
+  system_prompt = "You are a friendly but terse assistant. You are an expert in classifying historical newspaper articles about lynchings of African-Americans in the United States between 1865 and 1922.  You will be shown article text that will fall into one or more of these categories: 
+1. A story describing a lynching event that has already happened.
+2. A story about a crime alleged to have occured that suggests a lynching event might happen in the future as a response.
+3. A story that is about federal, state or local policies or laws governing lynching or one that describes debate over those laws and does not refer to a specific past lynching event or a possible future lynching event.  
+4. A story that contains strings or partial strings typically found in stories associated with lynching -- like the word 'lynching' or 'hanging' -- but that are not actually about individual lynching events or lynching policy. Examples include a story describing a book written by someone named John Lynch; a story describing a baseball game in Lynchburg, Virginia; or a story about how to hang a picture on a wall. 
+5. A story that is not about lynching at all and contains no terms commonly associated with lynching.
+6. Other (for stories that do not fit into any of the above categories). 
+You should pick one of these categories 
+Most stories will fall into only one of these categories, though some may fall into more than one. You should spellcheck each story first, then classify it into one or more of these categories. To do this, assign a percentage value to each category, which should total across all categories to 100.",
+  echo = FALSE
+)
+
+classification <- type_object(
+    spellchecked_story = type_string("Correct spelling of the article"),
+    category_name = type_enum(
+      "The category name",
+      values = c(
+        "A story describing ",
+        "1. Past lynching event",
+        "2. Possible future lynching",
+        "3. Lynching policy/law",
+        "4. Contains lynching terms, not about lynching",
+        "5. Contains no lynching terms, not about lynching",
+        "6. Other"
+      )
+    )
+  )
+
+data <- chat$extract_data(text, type = classification)
+
+
+
+
+
+chat <- chat_openai(
+  model = "gpt-4o-mini",
+  system_prompt = "You are a friendly but terse assistant. You are an expert in classifying historical newspaper articles about lynchings of African-Americans in the United States between 1865 and 1922.  You will be shown article text that will fall into one or more of these categories: 
+1. A story describing a lynching event that has already happened.
+2. A story about a crime alleged to have occured that suggests a lynching event might happen in the future as a response.
+3. A story that is about federal, state or local policies or laws governing lynching or one that describes debate over those laws and does not refer to a specific past lynching event or a possible future lynching event.  
+4. A story that contains strings or partial strings typically found in stories associated with lynching -- like the word 'lynching' or 'hanging' -- but that are not actually about individual lynching events or lynching policy. Examples include a story describing a book written by someone named John Lynch; a story describing a baseball game in Lynchburg, Virginia; or a story about how to hang a picture on a wall. 
+5. A story that is not about lynching at all and contains no terms commonly associated with lynching.
+6. Other (for stories that do not fit into any of the above categories). 
+You should pick one of these categories 
+Most stories will fall into only one of these categories, though some may fall into more than one. You should spellcheck each story first, then classify it into one or more of these categories. 
+
+You should return a valid json object -- and only a valid json object -- nothing more, nothing less. The object should have two keys: 'spellchecked_story' and 'category_name'. The value of 'spellchecked_story' should be the corrected spelling of the article. Remove any characters that will prevent it from being parsed as valid json. The value of 'category_name' should be the category name. The category name should be one of the following shorhanded versions of the longer description above:
+
+1 Past lynching event
+2 Possible future lynching 
+3 Lynching policy/law
+4 Contains lynching terms, not about lynching
+5 Contains no lynching terms, not about lynching
+6 Other
+",
+  echo = FALSE
+)
+
+
+data <- chat$chat(text)
+
+
+classification <- type_object(
+    spellchecked_story = type_string("Correct spelling of the article"),
+    category_name = type_enum(
+      "The category name",
+      values = c(
+        "A story describing ",
+        "1. Past lynching event",
+        "2. Possible future lynching",
+        "3. Lynching policy/law",
+        "4. Contains lynching terms, not about lynching",
+        "5. Contains no lynching terms, not about lynching",
+        "6. Other"
+      )
+    )
+  )
+
+data <- chat$extract_data(text, type = classification)
+
+
+
+system_prompt_value <- "You are a friendly but terse assistant. You are an expert in classifying historical newspaper articles about lynchings of African-Americans in the United States between 1865 and 1922.  You will be shown article text that will fall into one or more of these categories: 
+1. A story describing a lynching event that has already happened.
+2. A story about a crime alleged to have occured that suggests a lynching event might happen in the future as a response.
+3. A story that is about federal, state or local policies or laws governing lynching or one that describes debate over those laws and does not refer to a specific past lynching event or a possible future lynching event.  
+4. A story that contains strings or partial strings typically found in stories associated with lynching -- like the word 'lynching' or 'hanging' -- but that are not actually about individual lynching events or lynching policy. Examples include a story describing a book written by someone named John Lynch; a story describing a baseball game in Lynchburg, Virginia; or a story about how to hang a picture on a wall. 
+5. A story that is not about lynching at all and contains no terms commonly associated with lynching.
+6. Other (for stories that do not fit into any of the above categories). 
+You should pick one of these categories 
+Most stories will fall into only one of these categories, though some may fall into more than one. You should spellcheck each story first, then classify it into one or more of these categories. 
+
+You should return a valid json object -- and only a valid json object -- nothing more, nothing less. The object should have three keys: 'spellchecked_story' and 'category_name' and 'explanation'. The value of 'spellchecked_story' should be the corrected spelling of the article. Remove any characters that will prevent it from being parsed as valid json. The value of 'category_name' should be the category name. The category name should be one of the following shorhanded versions of the longer description above:
+
+1 Past lynching event
+2 Possible future lynching 
+3 Lynching policy/law
+4 Contains lynching terms, not about lynching
+5 Contains no lynching terms, not about lynching
+6 Other
+
+The value of 'explanation' should be a brief explanation of why you chose the category or categories you did, including keywords or terms that support the decision.
+
+"
+
+chat <- chat_ollama(
+  model = "llama3.2",
+  system_prompt = system_prompt_value,
+  echo = FALSE
+)
+
+
+data <- chat$chat(text)
+data
+
+chat <- chat_openai(
+  model = "gpt-4o-mini",
+  system_prompt = system_prompt_value,
+  echo = FALSE
+)
+
+
+data <- chat$chat(text)
+data
+
+```
+
+
+```{r}
+# put the below items in this format and add to the model_provider_type_list groq_gemma2-9b-it
+# model_provider_type_list <- list(
+"groq_gemma2-9b-it",#	Google	8,192	-	-	Card
+"groq_gemma-7b-it",#	Google	8,192	-	-	Card
+"groq_llama3-groq-70b-8192-tool-use-preview",#	Groq	8,192	-	-	Card
+"groq_llama3-groq-8b-8192-tool-use-preview",#	Groq	8,192	-	-	Card
+"groq_llama-3.1-70b-versatile",#	Meta	128k	32,768	-	Card
+"groq_llama-3.1-70b-specdec",#	Meta	128k	8,192		Card
+"groq_llama-3.1-8b-instant",#	Meta	128k	8,192	-	Card
+"groq_llama-3.2-1b-preview",#	Meta	128k	8,192	-	Card
+"groq_llama-3.2-3b-preview",#	Meta	128k	8,192	-	Card
+"groq_llama-guard-3-8b",#	Meta	8,192	-	-	Card
+"groq_llama3-70b-8192",#	Meta	8,192	-	-	Card
+"groq_llama3-8b-8192",#	Meta	8,192	-	-	Card
+"groq_mixtral-8x7b-32768",
+```
+
+```{r setup}
+
+#pak::pak("tidyverse/elmer")
+library(elmer)
+library(tidyverse)
+
+# Elmer for LLM calling https://elmer.tidyverse.org/index.html
+## To install ## #pak::pak("tidyverse/elmer")
+
+###
+# API Keys
+###
+# Set OPENAI_API_KEY in .Renviron file (probably at ~smussend root, not in folder)
+# Run to open renviron file to edit usethis::edit_r_environ() may need to restart R after
+# Check it is set Sys.getenv("OPENAI_API_KEY")
+
+usethis::edit_r_environ()
+Sys.getenv("OPENAI_API_KEY")
+```
+
+```{r}
+
+###
+# API TESTS 
+###
+
+##
+# OPEN AI
+#
+# API KEY IN RENVIRON FILE
+## Define Chat 
+chat <- chat_openai(
+  model = "gpt-4o-mini",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+## Send Prompt, Return Answer
+result <- chat$chat(
+  "What is the population of Canada?"
+)
+
+##
+# OLLAMA 
+##
+# https://elmer.tidyverse.org/reference/chat_ollama.html
+# Start up ollama program in applications, will appear in task bar in upper right Download if needed # https://ollama.com/
+# Download a model from command line, for example > ollama run llama3.2
+# Model list https://ollama.com/search
+
+chat <- chat_ollama(
+  model = "llama3.2",
+  base_url = "http://localhost:11434/v1",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+## Send Prompt, Return Answer
+result <- chat$chat(
+  "What is the population of Canada?"
+)
+
+chat <- chat_ollama(
+  model = "mistral:7b",
+  base_url = "http://localhost:11434/v1",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+## Send Prompt, Return Answer
+result <- chat$chat(
+  "What is the population of Canada?"
+)
+
+chat <- chat_ollama(
+  model = "gemma:2b",
+  base_url = "http://localhost:11434/v1",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+## Send Prompt, Return Answer
+result <- chat$chat(
+  "What is the population of Canada?"
+)
+
+###
+# GROQ
+###
+# GROQ_API_KEY in renviron
+chat <- chat_groq(
+  model = "llama-3.1-70b-versatile",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+## Send Prompt, Return Answer
+result <- chat$chat(
+  "What is the population of Canada?"
+)
+
+
+```
+
+```{r}
+
+# Load data
+# read in the feather file
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1889.feather")
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(1)
+
+# Extract first story
+text <- lynch$article[1]
+
+corrected_text <- type_object(
+  "Spellchecked article",
+  spellchecked_article = type_string("Correct spelling of the article")
+)
+
+#chat <- chat_groq(model="llama-3.1-70b-versatile")
+chat <- chat_openai(model="gpt-4o-mini")
+chat <- chat_ollama(model="gemma:2b", base_url="http://localhost:11434/v1")
+data <- chat$extract_data(text, type = corrected_text)
+
+lynch$article
+data$spellchecked_article
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(1)
+
+# Extract first story
+text <- lynch$article[1]
+
+chat <- chat_ollama(
+  model = "mistral:7b",
+  base_url="http://localhost:11434/v1",
+  system_prompt = "You are an assistant that always responds with properly formatted JSON. When asked to spellcheck, provide the result in this format only: {\"spellchecked_text\": \"your corrected text here\"}",
+  echo = FALSE
+)
+
+result <- chat$chat(paste0("Please spellcheck this text: ", text))
+result
+
+```
+
+```{r}
+
+df_clean <- df %>%
+  # make article lowercase, remove all punctuation and numbers
+  mutate(article = str_to_lower(article)) %>%
+  # remove punct
+  mutate(article = str_replace_all(article, "[[:punct:]]", " ")) %>%
+  # remove numbers
+  mutate(article = str_replace_all(article, "[[:digit:]]", " ")) %>%
+  # remove internal whitespace
+  mutate(article = str_squish(article)) 
+
+
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df_clean %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(1)
+
+# Extract first story
+text <- lynch$article[1]
+
+corrected_text <- type_object(
+  "Spellchecked article",
+  spellchecked_article = type_string("Correct spelling of the article")
+)
+
+chat <- chat_openai()
+data <- chat$extract_data(text, spec = corrected_text)
+
+lynch$article
+data$spellchecked_article
+```
+
+```{r}
+
+
+row_number <- 1
+
+article <- "my nsame is sean"
+
+spellcheck_article <- function(row_number) {
+  # Convert row to tibble
+  temp_df <- df %>% slice(row_number)
+  
+  spec <- type_object(
+    "Spellchecked article",
+    spellchecked_article = type_string("Correct spelling of the article")
+  )
+  rm(chat)
+  chat <- chat_openai(
+    model = "llama3.2",
+    base_url = "http://localhost:11434/v1",
+    echo = FALSE
+  )
+  article <- temp_df$article
+  result <- chat$extract_data(article, type = spec)
+  
+  tibble(
+    article_id = row_df$article_id,
+    original_article = row_df$article,
+    spellchecked_article = result$spellchecked_article
+  )
+}
+
+df_spellchecked <- df %>%
+  head(2) %>%
+  split(1:nrow(.)) %>%  # Split into list of rows
+  future_map_dfr(~spellcheck_article(.))
+```
+
+```{r}
+
+
+
+
+# Load data
+# read in the feather file
+df <- arrow::read_feather("build_american_stories_dataset/data_by_year/arrow/articles_1889.feather")
+
+# Filter articles containing "lynch" and limit to 10 rows
+lynch <- df %>%
+  filter(str_detect(article, "lynch")) %>%
+  head(1)
+
+# Extract first story
+text <- lynch$article[1]
+
+corrected_text <- type_object(
+  "Spellchecked article",
+  spellchecked_article = type_string("Correct spelling of the article")
+)
+
+chat <- chat_ollama(
+  model = "mistral:7b",
+  base_url = "http://localhost:11434/v1",
+  system_prompt = "You are a friendly but terse assistant.",
+  echo = FALSE
+)
+
+#chat <- chat_openai()
+data <- chat$extract_data(text, type = corrected_text)
+
+lynch$article
+data$spellchecked_article
+
+
+
+```
