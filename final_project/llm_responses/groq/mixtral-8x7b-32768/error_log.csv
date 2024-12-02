@@ -103,3 +103,27 @@
 ! HTTP 429 Too Many Requests.
 • Rate limit reached for model `mixtral-8x7b-32768` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 5000, Used 5118, Requested 776. Please try again in 10.738s. Visit https://console.groq.com/docs/rate-limits for more information.
 "
+"2024-12-02 13:22:07","26_1889-12-31_p1_sn94053256_00271763037_1889123101_0624","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `mixtral-8x7b-32768` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 5000, Used 4910, Requested 817. Please try again in 8.722s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:22:25","4_1889-08-21_p4_sn84027718_00271762690_1889082101_0384","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `mixtral-8x7b-32768` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 5000, Used 5215, Requested 1559. Please try again in 21.29s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:22:27","4_1889-08-21_p4_sn84027718_00271762690_1889082101_0384","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `mixtral-8x7b-32768` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 5000, Used 5015, Requested 1559. Please try again in 18.89s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:22:38","8_1922-08-18_pNone_sn89080007_00332897858_1922081801_0438","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `mixtral-8x7b-32768` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 5000, Used 5203, Requested 825. Please try again in 12.339s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:22:54","1_1922-01-22_p1_sn85038485_00340583061_1922012201_0334","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `mixtral-8x7b-32768` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 5000, Used 4945, Requested 1020. Please try again in 11.57s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:22:55","38_1889-12-14_p1_sn84022960_00414212001_1889121401_0039","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `mixtral-8x7b-32768` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 5000, Used 5305, Requested 2183. Please try again in 29.861s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
