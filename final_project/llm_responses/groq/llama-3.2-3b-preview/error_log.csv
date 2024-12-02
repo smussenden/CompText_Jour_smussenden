@@ -1,1 +1,357 @@
 "timestamp","article_id","error"
+"2024-12-02 13:25:07","4_1922-10-26_p4_sn88076421_0021247888A_1922102601_0597","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6851, Requested 985. Please try again in 7.163428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:25:52","28_1922-11-01_p4_sn82014519_00414219202_1922110101_0007","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7052, Requested 873. Please try again in 7.933s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:26:09","49_1922-01-18_p1_sn86072239_00279526533_1922011801_0111","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6958, Requested 814. Please try again in 6.616285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:26:32","89_1922-07-04_p17_sn83045462_00280657141_1922070401_0440","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7049, Requested 828. Please try again in 7.522428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:26:55","55_1922-09-15_p3_sn83045774_00271744365_1922091501_0491","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7083, Requested 832. Please try again in 7.850571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:26:55","55_1922-09-15_p3_sn83045774_00271744365_1922091501_0491","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6984, Requested 832. Please try again in 6.991571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:27:19","6_1922-10-19_p26_sn83045774_00271744377_1922101901_0777","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6886, Requested 980. Please try again in 7.417142857s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:27:27","6_1922-10-19_p26_sn83045774_00271744377_1922101901_0777","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6938, Requested 980. Please try again in 7.862428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:27:28","6_1922-10-19_p26_sn83045774_00271744377_1922101901_0777","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6917, Requested 980. Please try again in 7.686428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:27:37","4_1922-01-30_p1_sn85038485_00340583061_1922013001_0476","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7173, Requested 1064. Please try again in 10.604714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:27:37","4_1922-01-30_p1_sn85038485_00340583061_1922013001_0476","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7151, Requested 1064. Please try again in 10.414714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:27:46","50_1922-02-14_p2_sn84020558_0041421776A_1922021401_0076","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6955, Requested 820. Please try again in 6.641428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:27:54","33_1922-12-15_p13_sn83045774_00271744390_1922121501_0543","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7057, Requested 852. Please try again in 7.794571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:28:18","38_1922-08-20_p4_sn85038485_00340583085_1922082001_0764","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7006, Requested 845. Please try again in 7.294571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:28:18","38_1922-08-20_p4_sn85038485_00340583085_1922082001_0764","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6991, Requested 845. Please try again in 7.161571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:28:44","2_1922-07-30_p7_sn84024827_00211107091_1922073001_0179","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 9319, Requested 902. Please try again in 27.612142857s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:29:20","14_1922-01-18_p1_sn84024827_00211107078_1922011801_0330","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8124, Requested 902. Please try again in 17.370428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:29:39","14_1922-01-18_p1_sn84024827_00211107078_1922011801_0330","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6912, Requested 902. Please try again in 6.969857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:29:39","14_1922-01-18_p1_sn84024827_00211107078_1922011801_0330","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6893, Requested 902. Please try again in 6.805857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:29:46","38_1922-05-28_p24_sn85038485_00340583097_1922052801_0475","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7073, Requested 842. Please try again in 7.851142857s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:29:46","38_1922-05-28_p24_sn85038485_00340583097_1922052801_0475","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7075, Requested 842. Please try again in 7.861142857s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:29:56","3_1922-03-17_pNone_sn84036256_00295861162_1922031701_1107","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7087, Requested 963. Please try again in 9.006142857s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:30:05","5_1922-07-01_p7_sn84026749_00280764875_1922070101_0681","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7198, Requested 899. Please try again in 9.402857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:30:23","29_1922-07-10_p7_sn92051227_0041562105A_1922071001_0089","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8151, Requested 878. Please try again in 17.392571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:30:32","5_1922-04-05_p3_sn85042354_00383342582_1922040501_0885","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7054, Requested 922. Please try again in 8.373714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:30:44","15_1922-12-28_p1_sn88076421_0021247888A_1922122801_0751","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8087, Requested 1155. Please try again in 19.221714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:30:53","15_1922-12-28_p1_sn88076421_0021247888A_1922122801_0751","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7008, Requested 1155. Please try again in 9.971714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:31:04","3_1922-01-31_p3_sn83045774_0027174433A_1922013101_1070","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7264, Requested 1249. Please try again in 12.973571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:31:04","3_1922-01-31_p3_sn83045774_0027174433A_1922013101_1070","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7240, Requested 1249. Please try again in 12.770571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:31:20","7_1922-12-09_p4_sn96060881_00414216912_1922120901_0952","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7072, Requested 1621. Please try again in 14.513571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:31:21","7_1922-12-09_p4_sn96060881_00414216912_1922120901_0952","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7049, Requested 1621. Please try again in 14.321571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:31:35","7_1922-12-09_p4_sn96060881_00414216912_1922120901_0952","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7269, Requested 1621. Please try again in 16.207571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:31:54","13_1922-01-26_p1_sn92051501_00271763797_1922012601_0260","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8038, Requested 898. Please try again in 16.597857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:32:02","13_1922-01-26_p1_sn92051501_00271763797_1922012601_0260","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7079, Requested 898. Please try again in 8.378857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:32:21","6_1922-07-07_p5_sn82014519_00414218970_1922070701_0060","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 11904, Requested 902. Please try again in 49.766999999s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:32:30","6_1922-07-07_p5_sn82014519_00414218970_1922070701_0060","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 10818, Requested 902. Please try again in 40.459999999s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:33:11","79_1922-04-20_p1_sn85038485_00340583073_1922042001_0744","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6911, Requested 842. Please try again in 6.451s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:33:12","6_1922-07-07_p5_sn82014519_00414218970_1922070701_0060","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6856, Requested 902. Please try again in 6.492285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:33:18","44_1922-01-16_p7_sn90051672_00383341383_1922011601_0367","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7862, Requested 835. Please try again in 14.546428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:33:52","16_1922-11-29_p10_sn85042354_00383342612_1922112901_0979","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7223, Requested 844. Please try again in 9.147428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:33:52","16_1922-11-29_p10_sn85042354_00383342612_1922112901_0979","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7208, Requested 844. Please try again in 9.025428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:34:18","38_1922-12-11_p1_sn86072239_00279525668_1922121101_0691","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7000, Requested 836. Please try again in 7.164857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:34:27","13_1922-10-29_p17_sn84026749_00280764917_1922102901_0708","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7072, Requested 889. Please try again in 8.245285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:34:35","22_1922-11-17_p18_sn83045774_00271744389_1922111701_0578","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7114, Requested 847. Please try again in 8.237285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:34:35","22_1922-11-17_p18_sn83045774_00271744389_1922111701_0578","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7115, Requested 847. Please try again in 8.246285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:35:01","16_1922-01-18_p2_sn84020558_00414217758_1922011801_0358","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6986, Requested 902. Please try again in 7.605428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:35:13","4_1922-10-10_p14_sn83045774_00271744377_1922101001_0445","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8662, Requested 1307. Please try again in 25.454714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:35:21","30_1922-12-28_p7_sn92051227_00415621085_1922122801_0525","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7749, Requested 835. Please try again in 13.58s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:35:44","13_1922-03-07_p10_sn85038485_00340583073_1922030701_0101","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8237, Requested 850. Please try again in 17.888571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:35:52","13_1922-03-07_p10_sn85038485_00340583073_1922030701_0101","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7276, Requested 850. Please try again in 9.659571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:12","10_1922-12-07_p5_sn86069675_00280763706_1922120701_1633","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8010, Requested 878. Please try again in 16.185714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:29","10_1922-12-07_p5_sn86069675_00280763706_1922120701_1633","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6980, Requested 878. Please try again in 7.350857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:31","4_1922-04-04_pNone_sn83030193_00237281585_1922040401_0961","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6733, Requested 1230. Please try again in 8.247s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:40","4_1922-04-04_pNone_sn83030193_00237281585_1922040401_0961","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6911, Requested 1230. Please try again in 9.777857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:40","4_1922-04-04_pNone_sn83030193_00237281585_1922040401_0961","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6847, Requested 1230. Please try again in 9.225857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:48","6_1922-05-26_p1_sn85042414_00295863523_1922052601_0639","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6997, Requested 954. Please try again in 8.151142857s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:58","54_1922-07-08_p18_sn83045774_00271744298_1922070801_0253","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6845, Requested 1161. Please try again in 8.614714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:36:59","54_1922-07-08_p18_sn83045774_00271744298_1922070801_0253","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6839, Requested 1161. Please try again in 8.563714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:37:08","54_1922-07-08_p18_sn83045774_00271744298_1922070801_0253","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7729, Requested 1161. Please try again in 16.200428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:37:13","24_1922-11-16_p12_sn87062237_00383342740_1922111601_0629","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7061, Requested 859. Please try again in 7.885857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:37:22","24_1922-11-16_p12_sn87062237_00383342740_1922111601_0629","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6999, Requested 859. Please try again in 7.348142857s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:37:56","25_1922-12-15_p29_sn83045462_00280657232_1922121501_0093","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6977, Requested 890. Please try again in 7.423428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:38:04","25_1922-12-15_p29_sn83045462_00280657232_1922121501_0093","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7905, Requested 890. Please try again in 15.392857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:38:22","12_1922-08-02_p3_sn83045462_00280657153_1922080201_0704","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7193, Requested 1003. Please try again in 10.255285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:38:58","78_1922-04-14_p1_sn82014086_00295866408_1922041401_0392","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7068, Requested 833. Please try again in 7.727857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:39:23","24_1922-07-22_p5_sn83045774_00271744298_1922072201_0669","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6959, Requested 845. Please try again in 6.889857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:39:31","3_1922-09-20_p9_sn82014519_00414218982_1922092001_0266","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6919, Requested 942. Please try again in 7.378285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:39:32","3_1922-09-20_p9_sn82014519_00414218982_1922092001_0266","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6905, Requested 942. Please try again in 7.258285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:39:40","3_1922-09-20_p9_sn82014519_00414218982_1922092001_0266","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7716, Requested 942. Please try again in 14.216857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:39:46","8_1922-11-07_p5_sn86069496_00280763299_1922110701_0364","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6969, Requested 847. Please try again in 6.986571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:39:54","8_1922-11-07_p5_sn86069496_00280763299_1922110701_0364","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7025, Requested 847. Please try again in 7.480857142s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:39:55","23_1922-01-15_p61_sn83045462_00280657050_1922011501_0561","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6974, Requested 885. Please try again in 7.358571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:40:03","23_1922-01-15_p61_sn83045462_00280657050_1922011501_0561","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8030, Requested 885. Please try again in 16.415428571s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:40:13","2_1921-05-21_p7_sn85042354_00383342545_1921052101_1175","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6863, Requested 1050. Please try again in 7.817714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:40:25","3_1921-12-31_p6_sn83025514_00340586384_1921123101_0988","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8247, Requested 1494. Please try again in 23.498571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:40:50","28_1921-05-19_p18_sn84026749_00280764760_1921051901_0712","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 10067, Requested 1624. Please try again in 40.211285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:41:31","28_1921-05-19_p18_sn84026749_00280764760_1921051901_0712","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7034, Requested 1624. Please try again in 14.217285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:41:31","28_1921-05-19_p18_sn84026749_00280764760_1921051901_0712","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7029, Requested 1624. Please try again in 14.169285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:41:54","21_1921-08-11_p8_sn82014519_00414218908_1921081101_0482","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 8074, Requested 1440. Please try again in 21.555s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:42:05","21_1921-08-11_p8_sn82014519_00414218908_1921081101_0482","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6753, Requested 1440. Please try again in 10.224s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:42:15","3_1921-08-02_p25_sn85042354_00383342557_1921080201_0961","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6935, Requested 1235. Please try again in 10.022571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:42:17","21_1921-08-11_p8_sn82014519_00414218908_1921081101_0482","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6713, Requested 1440. Please try again in 9.879714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:42:43","65_1921-11-01_p17_sn83045774_00271744316_1921110101_0031","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7019, Requested 997. Please try again in 8.711714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:42:43","65_1921-11-01_p17_sn83045774_00271744316_1921110101_0031","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6996, Requested 997. Please try again in 8.504714285s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:42:54","9_1921-06-20_p12_sn87062237_00383342831_1921062001_0489","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6919, Requested 1266. Please try again in 10.151285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:42:54","9_1921-06-20_p12_sn87062237_00383342831_1921062001_0489","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 6893, Requested 1266. Please try again in 9.934285714s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:43:06","52_1921-03-29_p9_sn83045433_00280764152_1921032901_0626","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7198, Requested 1529. Please try again in 14.809s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:43:07","52_1921-03-29_p9_sn83045433_00280764152_1921032901_0626","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7109, Requested 1529. Please try again in 14.048s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
+"2024-12-02 13:43:22","52_1921-03-29_p9_sn83045433_00280764152_1921032901_0626","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Rate limit reached for model `llama-3.2-3b-preview` in organization `org_01j69xejb5fzvvdbr9jsxen9dt` on tokens per minute (TPM): Limit 7000, Used 7236, Requested 1529. Please try again in 15.128571428s. Visit https://console.groq.com/docs/rate-limits for more information.
+"
