@@ -445,3 +445,23 @@ z
 #readRDS("llm_responses/groq/gemma2-9b-it/3_1889-06-05_p13_sn96027724_00271761466_1889060501_0389.rds")
 
 ```
+
+```{r}
+x <- responses %>%
+mutate(category_id_clean = str_sub(category_id, 1, 1)) %>%
+filter(category_id_clean %in% c("1","2","3","4","5","6")) %>%
+rename(predicted_class_id = category_id_clean) %>%
+inner_join(test_set_articles, by = "article_id") %>%
+mutate(actual_class_id = class_id) %>%
+select(1:3, predicted_class_id, actual_class_id,class_definition, everything()) %>%
+mutate(accurate_prediction = if_else(predicted_class_id == actual_class_id, "TRUE", "FALSE")) %>%
+mutate(temp=1) %>%
+group_by(model_provider,model_type, accurate_prediction) %>%
+summarise(total=sum(temp)) %>%
+ungroup() %>%
+pivot_wider(names_from=accurate_prediction, values_from=total) %>%
+mutate(total_predictions = `TRUE` + `FALSE`) %>%
+# percent total accurate predictions
+mutate(percent_accurate = (`TRUE`/total_predictions)*100)
+
+```
