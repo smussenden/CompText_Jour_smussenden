@@ -343,3 +343,7 @@
 ! HTTP 429 Too Many Requests.
 • Resource has been exhausted (e.g. check quota).
 "
+"2024-12-02 13:20:55","9_1921-06-20_p12_sn87062237_00383342831_1921062001_0489","Error in `req_perform()`:
+! HTTP 429 Too Many Requests.
+• Resource has been exhausted (e.g. check quota).
+"
