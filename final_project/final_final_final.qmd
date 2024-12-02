@@ -346,7 +346,7 @@ model_provider_type_list <- c(
 workers <- parallel::detectCores() - 1
 future::plan(future::multisession, workers = workers)
 
-
+model_provider_type_list
 # Run classification in parallel
 future_map(
   model_provider_type_list,
