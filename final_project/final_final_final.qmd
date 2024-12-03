@@ -70,17 +70,17 @@ print(paste0("GOOGLE_API_KEY: ",Sys.getenv("GOOGLE_API_KEY")))
 # Human-classified story set
 # If tuning a model, can be split into test and training
 # For our purposes, since we're not tuning a model, we'll use the whole set
-test_set <- read_sheet("https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=2053814490#gid=2053814490", sheet="test_slash_training_set") %>%
-  janitor::clean_names() %>%
-  # extract four digit number between first _ and first -  in article_id into a new column called year
-  mutate(year = str_extract(article_id, "(?<=_)(\\d{4})(?=-)")) %>%
-  # extract first number from class and put in a new col called class_id
-  mutate(class_id = str_extract(class, "\\d+")) %>%
-  # extract everything but first number from class and put in a new col called class_definition
-  mutate(class_definition = str_remove(class, "\\d+")) %>%
-  # trim whitespace from class_definition and to lower
-  mutate(class_definition = tolower(str_squish(class_definition))) %>%
-  select(article_id, year, class_id, class_definition)
+# test_set <- read_sheet("https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=2053814490#gid=2053814490", sheet="test_slash_training_set") %>%
+#   janitor::clean_names() %>%
+#   # extract four digit number between first _ and first -  in article_id into a new column called year
+#   mutate(year = str_extract(article_id, "(?<=_)(\\d{4})(?=-)")) %>%
+#   # extract first number from class and put in a new col called class_id
+#   mutate(class_id = str_extract(class, "\\d+")) %>%
+#   # extract everything but first number from class and put in a new col called class_definition
+#   mutate(class_definition = str_remove(class, "\\d+")) %>%
+#   # trim whitespace from class_definition and to lower
+#   mutate(class_definition = tolower(str_squish(class_definition))) %>%
+#   select(article_id, year, class_id, class_definition)
 
 
 # use map_dfr to read in feather file for each year stored at build_american_stories_dataset/data_by_year/arrow/articles_YEAR.feather and bind them together
@@ -93,11 +93,11 @@ test_set <- read_sheet("https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTo
 
 
 # Write out test_set_articles to a feather file
-# arrow::write_feather(test_set_articles, "test_set_articles.feather")
+#arrow::write_feather(test_set_articles, "test_set_articles.feather")
 # Read in to save time later
 test_set_articles <- arrow::read_feather("test_set_articles.feather")
 
-test_set_articles <- test_set_articles #%>%
+#test_set_articles <- test_set_articles #%>%
  # slice(1:5)
 
 ```
@@ -139,42 +139,51 @@ Important formatting rules:
 - Remove any \\r or \\n characters from text
 - End the JSON object with a single closing curly brace }"
 
+```
 
 
+```{r}
+count_responses <- function() {
+  # Get all folders in llm_responses
+  providers <- list.dirs("llm_responses", recursive = FALSE, full.names = FALSE)
+  
+  results <- data.frame()
+  
+  for (provider in providers) {
+    # Get model folders for this provider
+    model_folders <- list.dirs(file.path("llm_responses", provider), 
+                             recursive = FALSE, 
+                             full.names = FALSE)
+    
+    for (model in model_folders) {
+      # Full path to check
+      full_path <- file.path("llm_responses", provider, model)
+      
+      # Count .rds files (responses) and exclude error_log.csv
+      file_count <- length(list.files(full_path, pattern = "\\.rds$"))
+      
+      # Add to results
+      results <- rbind(results, data.frame(
+        provider = provider,
+        model = model,
+        responses = file_count
+      ))
+    }
+  }
+  
+  return(results)
+}
 
-# system_prompt_value <- "You are an expert in classifying historical newspaper articles about lynchings in the United States between 1865 and 1922. You always follow instructions.
-# 
-# I will give you the text of a newspaper article and an associated article_id. The text can classified into one of six distinct categories:
-# 
-# 1. An article that describes a specific lynching event that has already happened.
-# 2. An article that does not describe a specific lynching event that has already happened, but does suggest a lynching event may happen in the future. 
-# 3. An article that does not describe a specific lynching event that has already happened, does not suggest a lynching event may happen in the future, but is about federal, state or local policies or laws governing lynching or describes debate over proposed laws.
-# 4. An article that contains strings or partial strings typically found in stories associated with lynching -- like the word 'lynching' or 'lynch' -- but does not describe past or possible lynching events or lynching laws and policies. This could include an article that mentions someone whose last name is Lynch, or a reference to Lynchburg, Va.
-# 5. An article that contains no strings or partial strings typically found in stories associated with lynching and not describe past or possible lynching events or lynching laws and policies.
-# 6. An article that does not fit into any of the first five categories.
-# 
-# Please do the following:
-# 
-# -- Because of flaws in the OCR process, the article text extracted from page images is often flawed. Do your best to correct these flaws, without changing meaning of the article. You should spellcheck the text and correct spelling errors, standardize capitalization, fix extraneous spaces, remove newline characters and random slashes, separate words that have obviously been concatenated in error, remove non alphabetic or standard punctuation characters. Of special importance is to correct any errors that will prevent the json from being parsed correctly. 
-# -- Select the category that best describes the article text. Choose only one. 
-# -- Develop a brief explanation of why you chose a specific category, including keywords or terms that support the decision.
-# 
-# Return a valid json object -- and only a valid json object, NOTHING more -- with four key-value pairs: 'article_id', 'spellchecked_text', 'category_id', 'category_description', 'explanation'. Populate the values as follows:
-# 
-# --'article_id': The provided article_id, without modification
-# --'spellchecked_text': The corrected spelling of the article text
-# --'category_id': The number of the category you chose, which is the first digit of each category provided above
-# --'category_description': The full description of the category you chose, without modification
-# --'explanation': A brief explanation of why you chose the category you did, including keywords or terms that support the decision.
-# 
-# For example, if you chose category 1, the json object might look like this:
-# 
-# This is an example of a properly formatted json object. Do not deviate from this format:
-# {'article_id': '10_1889-07-25_p1_sn84023017_00414212992_1889072507_0484', 'spellchecked_text': 'A negro man named Tom Smith was lynched in Albany, Georgia yesterday by a town mob.', 'category_id': '1', 'category_description': 'An article that describes a specific lynching event that has already happened.', 'explanation': 'The text uses the past tense was lynched to describe a specific person who was lynched by a mob'}   
-# 
-# Return only json in this format.  Do not include tick marks or the word json to indicate you are returning json.  Do not include newline characters in your response. A properly formatted response opens with a { and ends with a }"
+unfinished_file_counts <- count_responses() %>%
+  filter(responses != max(responses))
+
+unfinished_file_count_models <- unfinished_file_counts %>%
+  mutate(model = paste0(provider, "_", model)) %>%
+  #slice(3,4) %>%
+  pull(model)
 
 ```
+
 
 ```{r}
 ###
@@ -200,23 +209,28 @@ classify_articles <- function(model_provider_type, sample_size=1, overwrite=FALS
   dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
   
   log_file <- file.path(save_dir, "error_log.csv")
-  if (overwrite || !file.exists(log_file)) {
+  #if (overwrite || !file.exists(log_file)) {
     write.csv(data.frame(
       timestamp = character(),
       article_id = character(),
       error = character(),
       stringsAsFactors = FALSE
     ), log_file, row.names = FALSE)
-  }
+  #}
   
   result_df <- test_set_articles %>% slice(1:sample_size)
   articles <- result_df %>% pull(article)
   article_ids <- result_df %>% pull(article_id)
-  
+  #i <- 1
   process_article <- function(i) {
     file_path <- file.path(save_dir, paste0(article_ids[i], ".rds"))
-    if (!overwrite && file.exists(file_path)) return(NULL)
+    if (!overwrite && file.exists(file_path)) {
+      print(paste("Article", article_ids[i], "already processed"))
+      return(NULL)
+    }
     
+    print(paste("Article", article_ids[i], "not yet processed, starting..."))
+
     chat <- if (model_provider == "ollama") {
       chat_ollama(model = model_type, system_prompt = system_prompt_value, echo = FALSE)
     } else if (model_provider == "groq") {
@@ -262,6 +276,11 @@ classify_articles <- function(model_provider_type, sample_size=1, overwrite=FALS
   lapply(seq_along(articles), process_article)
   print(paste0("finished processing ", model_provider_type))
 }
+
+overwrite <- FALSE
+model_provider_type <- "gemini_gemini-1.5-pro"
+sample_size <- nrow(test_set_articles)
+classify_articles(model_provider_type, sample_size, overwrite)
 
 model_provider_type_list <- c(
   # Pass 1 
@@ -346,7 +365,7 @@ model_provider_type_list <- c(
 workers <- parallel::detectCores() - 1
 future::plan(future::multisession, workers = workers)
 
-model_provider_type_list
+model_provider_type_list <- unfinished_file_count_models
 # Run classification in parallel
 future_map(
   model_provider_type_list,
@@ -431,9 +450,9 @@ create_row <- function(article_id, model_provider, model_type, raw_response, par
     model_type = model_type,
     raw_response = raw_response,
     spellchecked_text = parsed$spellchecked_text %||% NA_character_,
-    category_id = parsed$category_id %||% NA_character_,
+    category_id = as.character(parsed$category_id) %||% NA_character_,
     category_description = parsed$category_description %||% NA_character_,
-    explanation = parsed$explanation %||% NA_character_
+    explanation = as.character(parsed$explanation) %||% NA_character_
   )
 }
 responses <- combine_responses()
@@ -447,21 +466,98 @@ z
 ```
 
 ```{r}
-x <- responses %>%
-mutate(category_id_clean = str_sub(category_id, 1, 1)) %>%
-filter(category_id_clean %in% c("1","2","3","4","5","6")) %>%
-rename(predicted_class_id = category_id_clean) %>%
-inner_join(test_set_articles, by = "article_id") %>%
-mutate(actual_class_id = class_id) %>%
-select(1:3, predicted_class_id, actual_class_id,class_definition, everything()) %>%
-mutate(accurate_prediction = if_else(predicted_class_id == actual_class_id, "TRUE", "FALSE")) %>%
-mutate(temp=1) %>%
-group_by(model_provider,model_type, accurate_prediction) %>%
-summarise(total=sum(temp)) %>%
-ungroup() %>%
-pivot_wider(names_from=accurate_prediction, values_from=total) %>%
-mutate(total_predictions = `TRUE` + `FALSE`) %>%
-# percent total accurate predictions
-mutate(percent_accurate = (`TRUE`/total_predictions)*100)
+quantification <- responses %>%
+  mutate(category_id_clean = str_sub(category_id, 1, 1)) %>%
+  #filter(category_id_clean %in% c("1","2","3","4","5","6")) %>%
+  rename(predicted_class_id = category_id_clean) %>%
+  inner_join(test_set_articles, by = "article_id") %>%
+  mutate(actual_class_id = class_id) %>%
+  select(1:3, predicted_class_id, actual_class_id,class_definition, everything()) %>%
+  mutate(accurate_prediction = if_else(predicted_class_id == actual_class_id, "TRUE", "FALSE")) %>%
+  mutate(temp=1) %>%
+  group_by(model_provider,model_type, accurate_prediction) %>%
+  summarise(total=sum(temp)) %>%
+  ungroup() %>%
+  pivot_wider(names_from=accurate_prediction, values_from=total) %>%
+  mutate(total_predictions = `TRUE` + `FALSE`) %>%
+  # percent total accurate predictions
+  mutate(percent_accurate = (`TRUE`/total_predictions)*100)
+
+```
+
+
+```{r}
+
+
+# Human-classified story set
+# If tuning a model, can be split into test and training
+# For our purposes, since we're not tuning a model, we'll use the whole set
+# test_set <- read_sheet("https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=2053814490#gid=2053814490", sheet="test_slash_training_set") %>%
+#   janitor::clean_names() %>%
+#   # extract four digit number between first _ and first -  in article_id into a new column called year
+#   mutate(year = str_extract(article_id, "(?<=_)(\\d{4})(?=-)")) %>%
+#   # extract first number from class and put in a new col called class_id
+#   mutate(class_id = str_extract(class, "\\d+")) %>%
+#   # extract everything but first number from class and put in a new col called class_definition
+#   mutate(class_definition = str_remove(class, "\\d+")) %>%
+#   # trim whitespace from class_definition and to lower
+#   mutate(class_definition = tolower(str_squish(class_definition))) %>%
+#   select(article_id, year, class_id, class_definition)
+
+
+# use map_dfr to read in feather file for each year stored at build_american_stories_dataset/data_by_year/arrow/articles_YEAR.feather and bind them together
+# create a list of distinct years
+# years <- test_set %>% distinct(year) %>% pull(year)
+
+years <- c("1891", "1915", "1913", "1890", "1902")
+
+# Pattern 1: Lynching of colored people
+pattern1 <- "lynching[s]?\\W+of\\W+(the\\W+)?(\\w+\\W+){1,2}?colored"
+pattern2 <- "(murderer|fiend|desperado|brute)\\W+(\\w+\\W+){1,2}?lynch(ed|es|ing)?(\\W+|$)"
+pattern3 <- "colored[s]?\\W+(\\w+\\W+){1,2}?((was|were)\\W+)?lynch(ed|es|ing)?(\\W+|$)"
+pattern4 <- "lynching[s]?\\W+of\\W+(the\\W+)?(\\w+\\W+){1,2}?negro"
+pattern5 <- "mob\\W+(\\w+\\W+){1,2}?(hung|hang(ed|ings?|s)|lynch(ed|es|ing)?)"
+pattern6 <- "negro(e?s)?\\W+(\\w+\\W+){1,2}?((was|were)\\W+)?lynch(ed|es|ing)?(\\W+|$)"
+regex_pattern <- paste0(pattern1,"|",pattern2,"|",pattern3,"|",pattern4,"|",pattern5,"|",pattern6)
+
+
+read_and_filter <- function(year) {
+  
+  temp <- arrow::read_feather(paste0("build_american_stories_dataset/data_by_year/arrow/articles_", year, ".feather")) %>%
+  # make article lowercase, remove all punctuation and numbers
+  mutate(article_clean = str_to_lower(article)) %>%
+  # remove punct
+  mutate(article_clean = str_replace_all(article_clean, "[[:punct:]]", " ")) %>%
+  # remove numbers
+  mutate(article_clean = str_replace_all(article_clean, "[[:digit:]]", " ")) %>%
+  # remove internal whitespace
+  mutate(article_clean = str_squish(article_clean)) %>%
+  mutate(jack_regex_match = str_detect(article_clean, regex_pattern)) %>%
+  filter(jack_regex_match == TRUE) 
+
+  return(temp)  
+  
+}
+
+plan(multisession, workers = 5)
+
+test_set_articles <- future_map_dfr(years, read_and_filter)
+
+x <- test_set_articles %>%
+  mutate(check = if_else(str_detect(article_clean,"orderly|judge lynch|citizen"), "TRUE", "FALSE")) 
+
+sheet_write(x, "https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=2053814490#gid=2053814490", sheet="orderly_justice_judge_citizens")
+
+
+
+
+not_lynch <- df_clean %>%
+  filter(!str_detect(article_clean,"lynch")) %>%
+  filter(jack_regex_match != TRUE)
+
+judge <- df_clean %>%
+  filter(str_detect(article_clean,"judge lynch")) 
+
+
 
 ```

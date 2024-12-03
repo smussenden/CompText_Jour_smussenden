@@ -13,3 +13,5 @@ exercises/assets/.DS_Store
 *.parquet
 final_project/build_american_stories_dataset/data_by_year/arrow_zip_large/
 final_project/build_american_stories_dataset/data_by_year/arrow_zip_large.zip
+*.feather.zip
+*.DS_Store
