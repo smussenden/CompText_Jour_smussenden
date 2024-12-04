@@ -728,3 +728,9 @@
 2024-10-10 10:40:37,614 - INFO - File already exists for year 1959, skipping...
 2024-10-10 10:40:37,615 - INFO - File already exists for year 1963, skipping...
 2024-10-10 10:40:37,614 - INFO - File already exists for year 1961, skipping...
+2024-12-04 08:05:59,007 - INFO - Start downloading data for year 1962 at 2024-12-04 08:05:59.007136
+2024-12-04 08:05:59,008 - INFO - Start downloading data for year 1963 at 2024-12-04 08:05:59.008693
+2024-12-04 08:06:08,756 - INFO - Successfully downloaded and saved data for year 1963
+2024-12-04 08:06:08,810 - INFO - Done: 1963 at 2024-12-04 08:06:08.810761, duration: 0:00:09.802068
+2024-12-04 08:06:10,306 - INFO - Successfully downloaded and saved data for year 1962
+2024-12-04 08:06:10,368 - INFO - Done: 1962 at 2024-12-04 08:06:10.368902, duration: 0:00:11.361766

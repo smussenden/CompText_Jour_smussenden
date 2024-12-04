@@ -3,62 +3,42 @@ title: "final_final_project"
 ---
 
 ```{r}
-###
-# Load libraries
-###
-
-# Data science goodness
-library(tidyverse)
-library(googlesheets4)
-library(janitor)
-
-# Elmer for LLM calling https://elmer.tidyverse.org/index.html To install ## #pak::pak("tidyverse/elmer")
-library(elmer)
-
-# For the paralell speed we love so much
-library(future)
-library(furrr)
-
-# For loading feather files
-library(arrow)
-
-library(paws.common)
-#library(paws)
 
 ###
-# API Keys
+# Load libraries +
+# Open .Renviron file to add API Keys
 ###
-# To work with elmer, keys need to be stored in the .Renviron file
-# Run to open renviron file to edit usethis::edit_r_environ() 
-# may need to restart R after
-# Note that the .renviron file seems to be stored at like r root, maybe, not in project directory?
-# Check it is set Sys.getenv("OPENAI_API_KEY")
 
-# For this script, need the following keys
-# ATTENTION: do not uncomment these keys here, they need to be stored in the .Renviron file. This is just for your information, man. 
-# Open AI
+source("r_scripts/r_environment_setup.R")
+
+# Your .Renviron file should open up here.
+# It's a text file you can edit.  
+# It's where you'll store your API keys so you don't have to put them in your script.
+# Make sure the file is git-ignored, so you don't expose your keys to the public. 
+# You'll need to add in API keys for OpenAI, Groq, Amazon Bedrock, Google Gemini, and AWS if you want this script to work.
+# DO NOT EDIT THE EXAMPLES BELOW IN THE QMD FILE. 
+# THIS IS JUST TO SHOW YOU WHAT IT SHOULD LOOK LIKE IN Renviron. 
+# Be sure to save the change to the file when you make edits
 #OPENAI_API_KEY = "key_here"
-
-# Groq
-# GROQ_API_KEY = "key_here"
-
-# Amazon Bedrock
-#AWS_ACCESS_KEY_ID = ""
-#AWS_SECRET_ACCESS_KEY = "key_here"
-#AWS_REGION = "key_here"
-
-# Google Gemini (not sure if have to call it google or gemini, so using both )
+#GROQ_API_KEY = "key_here"
+#AWS_ACCESS_KEY_ID = "access_key_here"
+#AWS_SECRET_ACCESS_KEY = "secret_key_here"
+#AWS_REGION = "region_name"
 #GEMINI_API_KEY = "key_here"
 #GOOGLE_API_KEY = "key_here"
 
-# If all of these keys are set, then you can run the following to check
-print(paste0("OPENAI_API_KEY: ",Sys.getenv("OPENAI_API_KEY")))
-print(paste0("GROQ_API_KEY: ",Sys.getenv("GROQ_API_KEY")))
-print(paste0("AWS_ACCESS_KEY_ID: ",Sys.getenv("AWS_ACCESS_KEY_ID")))
-print(paste0("AWS_SECRET_ACCESS_KEY: ",Sys.getenv("AWS_SECRET_ACCESS_KEY")))
-print(paste0("AWS_REGION: ",Sys.getenv("AWS_REGION")))
-print(paste0("GEMINI_API_KEY: ",Sys.getenv("GEMINI_API_KEY")))
-print(paste0("GOOGLE_API_KEY: ",Sys.getenv("GOOGLE_API_KEY")))
+# If you have added or changed keys in your .Renviron file, you have to restart R to make sure they're loaded.
+# If you have done that, you'll need to restart R and then reload libraries.
+# You can do that by uncommenting the two lines of code below and then running
+# If you have not made changes to .Renviron (you only have to do it once, or when your keys change), then leave these uncommented.
+# rstudioapi::restartSession()
+# source("r_environment_setup.R")
+
+###
+# Load training data
+###
+
+source("")
 
 ```
 
@@ -100,6 +80,31 @@ test_set_articles <- arrow::read_feather("test_set_articles.feather")
 #test_set_articles <- test_set_articles #%>%
  # slice(1:5)
 
+
+test_set <- read_sheet("https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=2053814490#gid=2053814490", sheet="test_slash_training_set") %>%
+  janitor::clean_names() %>%
+  mutate(year = str_extract(article_id, "(?<=_)(\\d{4})(?=-)")) %>%
+  mutate(class_id = str_extract(class, "\\d+")) %>%
+  mutate(class_definition = str_remove(class, "\\d+")) %>%
+  mutate(class_definition = tolower(str_squish(class_definition))) %>%
+  select(article_id, year, class_id, class_definition)
+
+years <- test_set %>% distinct(year) %>% pull(year)
+
+plan(multisession)
+
+test_set_articles <- future_map_dfr(years, ~arrow::read_feather(paste0("../data/01_raw_articles_by_year/articles_", .x, ".feather"))) %>%
+  inner_join(test_set, by=c("article_id"="article_id"))
+
+x <- test_set_articles %>%
+  relocate(year, .before=date) %>%
+  select(-byline) %>%
+  rename(actual_class_id = class_id) 
+
+write_rds(x,"../data/03_test_data/03_test_data.rds")
+arrow::write_feather(test_set_articles, "test_set_articles.feather")
+
+test_set_articles <- arrow::read_feather("test_set_articles.feather")
 ```
 
 ```{r}
@@ -140,7 +145,6 @@ Important formatting rules:
 - End the JSON object with a single closing curly brace }"
 
 ```
-
 
 ```{r}
 count_responses <- function() {
@@ -183,7 +187,6 @@ unfinished_file_count_models <- unfinished_file_counts %>%
   pull(model)
 
 ```
-
 
 ```{r}
 ###
@@ -484,7 +487,6 @@ quantification <- responses %>%
   mutate(percent_accurate = (`TRUE`/total_predictions)*100)
 
 ```
-
 
 ```{r}
 
