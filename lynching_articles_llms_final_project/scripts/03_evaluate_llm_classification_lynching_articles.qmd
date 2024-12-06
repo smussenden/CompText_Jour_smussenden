@@ -5,11 +5,11 @@ title: "final_final_project"
 ```{r}
 
 ###
-# Load libraries +
+# Step 01 Load libraries +
 # Open .Renviron file to add API Keys
 ###
 
-source("r_scripts/r_environment_setup.R")
+source("r_scripts/03_01_r_environment_setup.R")
 
 # Your .Renviron file should open up here.
 # It's a text file you can edit.  
@@ -32,7 +32,24 @@ source("r_scripts/r_environment_setup.R")
 # You can do that by uncommenting the two lines of code below and then running
 # If you have not made changes to .Renviron (you only have to do it once, or when your keys change), then leave these uncommented.
 # rstudioapi::restartSession()
-# source("r_environment_setup.R")
+
+
+###
+# Step 02 Define model list
+###
+
+source("r_scripts/03_02_r_provider_model_list.R")
+
+###
+# Step 03 Define system prompt to send with each article
+###
+
+source("r_scripts/03_03_r_system_prompt.R")
+
+###
+# Load function to classify articles
+###
+source("r_scripts/03_04_r_classify_articles.R")
 
 ###
 # Load training_data
@@ -41,47 +58,92 @@ source("r_scripts/r_environment_setup.R")
 test_data <- read_rds("../data/03_test_data/03_test_data.rds")
 
 ###
-# Define system prompt
+# Classify articles
 ###
 
-system_prompt_value <- "You are an expert in classifying historical newspaper articles about lynchings in the United States between 1865 and 1922. You always follow instructions.
-I will give you the text of a newspaper article and an associated article_id. The text can classified into one of six distinct categories:
-1. An article that describes a specific lynching event that has already happened.
-2. An article that does not describe a specific lynching event that has already happened, but does suggest a lynching event may happen in the future. 
-3. An article that does not describe a specific lynching event that has already happened, does not suggest a lynching event may happen in the future, but is about federal, state or local policies or laws governing lynching or describes debate over proposed laws.
-4. An article that contains strings or partial strings typically found in stories associated with lynching -- like the word 'lynching' or 'lynch' -- but does not describe past or possible lynching events or lynching laws and policies. This could include an article that mentions someone whose last name is Lynch, or a reference toa city that includes 'lynch' as part of its name, like Lynchburg, Va.
-5. An article that contains no strings or partial strings typically found in stories associated with lynching and not describe past or possible lynching events or lynching laws and policies.
-6. An article that does not fit into any of the first five categories.
-Please do the following:
--- The article text provided here was extracted from newspaperpage images through an imperfect OCR process. Do your best to correct any flaws introduced in this process, without changing meaning of the article. You should spellcheck the text and correct spelling errors, standardize capitalization, fix extraneous spaces, remove newline characters and random slashes, separate words that have obviously been concatenated in error, remove non alphabetic or standard punctuation characters. Of special importance is to correct any errors that will prevent the json from being parsed correctly later. 
--- Select the category that best describes the article text. Choose only one. 
--- Develop a brief explanation of why you chose a specific category, including keywords or terms that support the decision.
+###
+# For testing, run function for a single model
+###
+# classify_articles(
+#   model_provider_type = "gemini_gemini-1.5-flash",
+#   model_for_json_reparse = "gemini_gemini-1.5-flash",
+#   system_prompt = system_prompt_value,
+#   test_set_articles_df = test_data,
+#   sample_size = 1,
+#   overwrite = FALSE
+# )
 
-Format your response as a JSON object with these exact fields:
-{
-    \"article_id\": \"string, unchanged from input\",
-    \"spellchecked_text\": \"string, corrected spelling of article\",
-    \"category_id\": \"string, single digit 1-6\",
-    \"category_description\": \"string, exact category description from above\",
-    \"explanation\": \"string, brief reason for classification\"
-}
+```
 
-Important formatting rules:
-- Use double quotes for all strings
-- No line breaks in text fields
-- No trailing commas
-- No comments or additional text
-- No markdown formatting
-- Escape all quotes within text using single quotes
-- Remove any \\r or \\n characters from text
-- End the JSON object with a single closing curly brace }"
+
+```{r}
+
+
+###
+# Run function for all articles in parallel
+###
+
+# Establish workers for parallel processing
+# Standard is one less than number of cpu cores
+# workers <- parallel::detectCores() - 1
+# We'll set at 4 for now
+workers <- 4
+
+# Set up parallel processing
+future::plan(future::multisession, workers = workers)
+
+# Run classification in parallel
+future_map(
+  model_provider_type_list,
+  classify_articles,
+  system_prompt = system_prompt_value,
+  test_set_articles_df = test_data,
+  sample_size = nrow(test_data),
+  overwrite = FALSE,
+  .progress = TRUE
+)
+nrow(test_set_articles)
+
 
 
 ```
 
 
+```{r}
+# function to read in all csv files located inside folder llm_responses recursively and row bind use map_dfr
+read_error_logs <- function() {
+  # Get all folders in llm_responses
+  providers <- list.dirs("../llm_responses", recursive = FALSE, full.names = FALSE)
+  
+  results <- data.frame()
+  #provider <- "groq"
+  for (provider in providers) {
+    # Get model folders for this provider
+    model_folders <- list.dirs(file.path("../llm_responses", provider), 
+                             recursive = FALSE, 
+                             full.names = FALSE)
+    #model <- model_folders[1]
+    for (model in model_folders) {
+      # Full path to check
+      full_path <- file.path("../llm_responses", provider, model)
+      
+      # Get all .rds files (responses) and exclude error_log.csv
+      files <- list.files(full_path, pattern = "error_log.csv", full.names = TRUE)
+      
+      # Read in all files
+      responses <- purrr::map_dfr(files, read_csv)
+      
+      # Add to results
+      results <- rbind(results, responses)
+    }
+  }
+  
+  return(results)
+}
 
+# error_logs <- read_error_logs()
 
+```
 
 ```{r}
 count_responses <- function() {

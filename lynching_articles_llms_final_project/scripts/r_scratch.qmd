@@ -3,6 +3,30 @@ title: "final_final_project"
 ---
 
 ```{r}
+<<<<<<< Updated upstream:lynching_articles_llms_final_project/scripts/r_scratch.qmd
+=======
+###
+# Load libraries
+###
+
+# Data science goodness
+library(tidyverse)
+library(googlesheets4)
+library(janitor)
+
+# Elmer for LLM calling https://elmer.tidyverse.org/index.html To install ## #pak::pak("tidyverse/elmer")
+library(elmer)
+
+# For the parallel speed we love so much
+library(future)
+library(furrr)
+
+# For loading feather files
+library(arrow)
+
+library(paws.common)
+#library(paws)
+>>>>>>> Stashed changes:final_project/final_final_final.qmd
 
 ###
 # Load libraries +
@@ -50,30 +74,30 @@ source("")
 # Human-classified story set
 # If tuning a model, can be split into test and training
 # For our purposes, since we're not tuning a model, we'll use the whole set
-# test_set <- read_sheet("https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=2053814490#gid=2053814490", sheet="test_slash_training_set") %>%
-#   janitor::clean_names() %>%
+test_set <- read_sheet("https://docs.google.com/spreadsheets/d/1zleETBjVMOwLMYTouK7UHWzQx53H2q2oN_S3mj5tqlk/edit?gid=2053814490#gid=2053814490", sheet="test_slash_training_set") %>%
+   janitor::clean_names() %>%
 #   # extract four digit number between first _ and first -  in article_id into a new column called year
-#   mutate(year = str_extract(article_id, "(?<=_)(\\d{4})(?=-)")) %>%
+   mutate(year = str_extract(article_id, "(?<=_)(\\d{4})(?=-)")) %>%
 #   # extract first number from class and put in a new col called class_id
-#   mutate(class_id = str_extract(class, "\\d+")) %>%
+   mutate(class_id = str_extract(class, "\\d+")) %>%
 #   # extract everything but first number from class and put in a new col called class_definition
-#   mutate(class_definition = str_remove(class, "\\d+")) %>%
+   mutate(class_definition = str_remove(class, "\\d+")) %>%
 #   # trim whitespace from class_definition and to lower
-#   mutate(class_definition = tolower(str_squish(class_definition))) %>%
-#   select(article_id, year, class_id, class_definition)
+   mutate(class_definition = tolower(str_squish(class_definition))) %>%
+   select(article_id, year, class_id, class_definition)
 
 
 # use map_dfr to read in feather file for each year stored at build_american_stories_dataset/data_by_year/arrow/articles_YEAR.feather and bind them together
 # create a list of distinct years
-# years <- test_set %>% distinct(year) %>% pull(year)
+years <- test_set %>% distinct(year) %>% pull(year)
 # initiate paralell rig
-# plan(multisession)
-# test_set_articles <- future_map_dfr(years, ~arrow::read_feather(paste0("build_american_stories_dataset/data_by_year/arrow/articles_", .x, ".feather"))) %>%
-#  inner_join(test_set, by=c("article_id"="article_id"))
+plan(multisession)
+test_set_articles <- future_map_dfr(years, ~arrow::read_feather(paste0("build_american_stories_dataset/data_by_year/arrow/articles_", .x, ".feather"))) %>%
+  inner_join(test_set, by=c("article_id"="article_id"))
 
 
 # Write out test_set_articles to a feather file
-#arrow::write_feather(test_set_articles, "test_set_articles.feather")
+arrow::write_feather(test_set_articles, "test_set_articles.feather")
 # Read in to save time later
 test_set_articles <- arrow::read_feather("test_set_articles.feather")
 
@@ -460,16 +484,16 @@ create_row <- function(article_id, model_provider, model_type, raw_response, par
 }
 responses <- combine_responses()
 
-z <- responses %>% filter(is.na(spellchecked_text)) %>% pull(raw_response)
+#z <- responses %>% filter(is.na(spellchecked_text)) %>% pull(raw_response)
 
-z
+#z
 
 #readRDS("llm_responses/groq/gemma2-9b-it/3_1889-06-05_p13_sn96027724_00271761466_1889060501_0389.rds")
 
 ```
 
 ```{r}
-quantification <- responses %>%
+accuracy_check <- responses %>%
   mutate(category_id_clean = str_sub(category_id, 1, 1)) %>%
   #filter(category_id_clean %in% c("1","2","3","4","5","6")) %>%
   rename(predicted_class_id = category_id_clean) %>%
@@ -477,14 +501,22 @@ quantification <- responses %>%
   mutate(actual_class_id = class_id) %>%
   select(1:3, predicted_class_id, actual_class_id,class_definition, everything()) %>%
   mutate(accurate_prediction = if_else(predicted_class_id == actual_class_id, "TRUE", "FALSE")) %>%
+  select(model_provider, model_type, actual_class_id, predicted_class_id, accurate_prediction, explanation, everything())
+
+accuracy_stats <- accuracy_check %>%
   mutate(temp=1) %>%
   group_by(model_provider,model_type, accurate_prediction) %>%
   summarise(total=sum(temp)) %>%
   ungroup() %>%
   pivot_wider(names_from=accurate_prediction, values_from=total) %>%
-  mutate(total_predictions = `TRUE` + `FALSE`) %>%
+  # replace all numeric values that are AN with 0
+  mutate(across(where(is.numeric), ~replace(., is.na(.), 0))) %>%
+  mutate(total_predictions = `TRUE` + `FALSE` + `NA`) %>%
   # percent total accurate predictions
-  mutate(percent_accurate = (`TRUE`/total_predictions)*100)
+  mutate(percent_accurate_w_na = (`TRUE`/total_predictions)*100) %>%
+  mutate(percent_accurate_no_na = (`TRUE`/(total_predictions-`NA`))*100) %>%
+  filter(total_predictions > 125) %>%
+  arrange(desc(percent_accurate_no_na))
 
 ```
 

@@ -1,7 +1,5 @@
 ---
 title: "Untitled"
-format: html
-editor: visual
 ---
 
 RQ1: When did lynching emerge as a recognizable and consistently covered story in US newspapers?
@@ -10,9 +8,7 @@ RQ2: Did predominantly white-owned newspapers consistently offer narratives that
 
 We summarize our workflow below: We placed 60,042 scanned newspaper pages identified with our lynching search terms in a database. Student research assistants used a specialized Web interface called the “Article Extractor” and identified 11,396 lynching news articles. They drew boundaries around specific articles for extraction. We used software to extract text from the identified article. The pages first were rescanned to capture the best results. We examined the results and removed 202 articles primarily because the scanning software failed to capture the text properly. We compiled the extracted text of 11,194 articles in a new database, which we then downloaded and analyzed using various software and machine learning techniques.
 
-RQ2: Did predominantly white-owned newspapers offer narratives that justified, excused or soft-pedaled lynching? Normalizing Lynching
-1891, 1915, 1913, 1890, 1902
-White news coverage served to normalize lynching by equating the lynch mob to “citizens,” or portraying lynching as a quasi-judicial act. Our analysis of lynching news examined specific keywords in context and revealed how the term "citizen" was often synonymous with the lynchers. “It was not an unruly midnight mob,” the New Ulm Weekly Review (Minnesota) reported in 1891. “It was simply a sullen, determined body of citizens who took into their hands what justice had ignominiously failed to do.”
+RQ2: Did predominantly white-owned newspapers offer narratives that justified, excused or soft-pedaled lynching? Normalizing Lynching 1891, 1915, 1913, 1890, 1902 White news coverage served to normalize lynching by equating the lynch mob to “citizens,” or portraying lynching as a quasi-judicial act. Our analysis of lynching news examined specific keywords in context and revealed how the term "citizen" was often synonymous with the lynchers. “It was not an unruly midnight mob,” the New Ulm Weekly Review (Minnesota) reported in 1891. “It was simply a sullen, determined body of citizens who took into their hands what justice had ignominiously failed to do.”
 
 Some articles characterized the lynch mob as orderly even when facts of the incident describe an orgy of violence. On Aug. 13, 1915, the Wauwatosa News (Wisconsin) reported a lynching in Shawnee, Oklahoma, describing “a quiet, orderly crowd armed to the teeth, which hanged Ed Berry to a Santa Fe railroad bridge, riddled his body with bullets and dispersed in as orderly a fashion as it had formed.”
 
