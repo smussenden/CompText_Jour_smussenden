@@ -87,15 +87,16 @@ test_data <- read_rds("../data/03_test_data/03_test_data.rds")
 # Standard is one less than number of cpu cores
 # workers <- parallel::detectCores() - 1
 # We'll set at 4 for now
-workers <- 4
+#workers <- 4
 
 # Set up parallel processing
-future::plan(future::multisession, workers = workers)
 workers <- parallel::detectCores() - 1
+future::plan(future::multisession, workers = workers)
+
 
 # Run classification in parallel
 future_map(
-  model_provider_type_list,
+  provider_model_type_list,
   classify_articles,
   system_prompt = system_prompt_value,
   test_set_articles_df = test_data,
@@ -103,11 +104,61 @@ future_map(
   overwrite = FALSE,
   .progress = TRUE
 )
-nrow(test_set_articles)
 
 
 
 ```
+
+```{r}
+###
+# Combine individual model responses into a single data frame
+###
+source("r_scripts/03_05_r_evaluate_responses.R")
+responses <- combine_responses()
+
+
+##
+# Create objects that evaluate model completeness
+##
+model_completeness_status <- get_model_completeness_status()
+
+model_completeness_status_df <- model_completeness_status$provider_model_type_status_df  
+provider_model_type_rerun_list <- model_completeness_status$provider_model_type_rerun_list
+article_status_matrix <- model_completeness_status$article_status_matrix
+###
+# Rerun failed models
+###
+
+# We'll set at 4 for now
+#workers <- 4
+#source("r_scripts/03_04_r_classify_articles.R")
+
+# Set up parallel processing
+workers <- parallel::detectCores() - 1
+future::plan(future::multisession, workers = workers)
+z <- future::plan(future::multisession, workers = workers)
+# Run classification in parallel
+future_map(
+  provider_model_type_rerun_list,
+  classify_articles,
+  system_prompt = system_prompt_value,
+  test_set_articles_df = test_data,
+  sample_size = nrow(test_data),
+  overwrite = FALSE,
+  .progress = TRUE
+)
+#nrow(test_set_articles)
+
+classify_articles(
+  model_provider_type = provider_model_type_rerun_list[1],
+#  model_for_json_reparse = "gemini_gemini-1.5-flash",
+  system_prompt = system_prompt_value,
+  test_set_articles_df = test_data,
+  sample_size = nrow(test_data),
+  overwrite = FALSE
+)
+```
+
 
 ```{r}
 # function to read in all rds files located inside folder llm_responses recursively and row bind use map_dfr

@@ -44,14 +44,14 @@ classify_articles <- function(model_provider_type="gemini_gemini-1.5-pro",
   # Create log file
   ### 
   log_file <- file.path(save_dir, "error_log.csv")
-  if (overwrite || !file.exists(log_file)) {
+  #if (overwrite || !file.exists(log_file)) {
     write.csv(data.frame(
       timestamp = character(),
       article_id = character(),
       error = character(),
       stringsAsFactors = FALSE
     ), log_file, row.names = FALSE)
-  }
+  #}
   
   ###
   # Set number of articles to pass through models
@@ -74,7 +74,16 @@ classify_articles <- function(model_provider_type="gemini_gemini-1.5-pro",
   # Loop through articles and apply process_article function
   ###
   
-  walk(seq_along(articles), ~process_article(i = .x, article_ids = article_ids, articles = articles, save_dir = save_dir, model_provider = model_provider, model_type = model_type))
+  walk(seq_along(articles), 
+       ~process_article(i = .x, 
+                        article_ids = article_ids, 
+                        articles = articles, 
+                        save_dir = save_dir, 
+                        model_provider = model_provider, 
+                        model_type = model_type, 
+                        overwrite=overwrite,
+                        model_provider_type=model_provider_type,
+                        log_file=log_file))
   print(paste0("finished processing ", model_provider_type))
 }
 
@@ -82,12 +91,13 @@ classify_articles <- function(model_provider_type="gemini_gemini-1.5-pro",
 # process article function
 ###
 
-process_article <- function(i, article_ids, articles, save_dir, model_provider, model_type) {
-  
+process_article <- function(i, article_ids, articles, save_dir, model_provider, model_type, overwrite, model_provider_type,log_file) {
+  #print(overwrite)
+  #return(overwrite)
   ###
   # Define filepath
   ###
-  
+  print(model_provider_type)
   file_path <- file.path(save_dir, paste0(article_ids[i], ".rds"))
   
   ###
