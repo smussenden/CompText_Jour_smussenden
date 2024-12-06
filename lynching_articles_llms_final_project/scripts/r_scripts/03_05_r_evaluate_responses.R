@@ -1,31 +1,23 @@
 
 combine_responses <- function(base_dir = "../llm_responses") {
+  
   files <- list.files(base_dir, pattern = "\\.rds$", recursive = TRUE, full.names = TRUE)
-  #file <- files[1]
+
   responses <- map_dfr(files, function(file) {
+    
     parts <- str_split(file, "/")[[1]]
-    model_provider <- parts[3]
+    model_provider <- parts[3] 
     model_type <- parts[4]
     article_id <- str_remove(basename(file), "\\.rds$")
-    
     raw_response <- readRDS(file)
     response_parts <- str_split(raw_response, "Warning:")[[1]]
     response <- response_parts[1]
     
     json <- str_extract(response, "\\{[^}]*\\}")
+    
     if (is.na(json)) {
-      json <- str_extract(response, "\\{.*") %>%
-        str_replace_all("\\\\_", "_") %>%
-        str_replace_all("\\\\([nrt])", "") %>%
-        str_replace_all("\\\\([^\"'\\\\])", "\\1") %>%
-        str_replace_all("\\s+", " ") %>%
-        str_trim()
-      
-      json <- paste0(json, "}")
-      
+      return(create_empty_row(article_id, model_provider, model_type, raw_response))
     } else {
-      #if (is.na(json)) return(create_empty_row(article_id, model_provider, model_type, raw_response))
-      
       json <- json %>%
         str_replace_all("\\\\_", "_") %>%
         str_replace_all("\\\\([nrt])", "") %>%
@@ -33,18 +25,38 @@ combine_responses <- function(base_dir = "../llm_responses") {
         str_replace_all("\\s+", " ") %>%
         str_trim()
       
-    }
-    
-    tryCatch({
-      parsed <- jsonlite::fromJSON(json)
-      create_row(article_id, model_provider, model_type, json, parsed)
-    }, error = function(e) {
+      tryCatch({
+        parsed <- jsonlite::fromJSON(json)
+        create_row(article_id, model_provider, model_type, json, parsed)
+      }, error = function(e) {
       warning(sprintf("Failed to parse JSON for file %s: %s\nResponse: %s", file, as.character(e), json))
-      create_empty_row(article_id, model_provider, model_type, json)
-    })
-  })
-  responses
-}
+      create_empty_row(article_id, model_provider, model_type, raw_response)
+      })
+  }
+  })}
+
+combine_responses_2 <- function(base_dir = "../llm_responses") {
+  
+  files <- list.files(base_dir, pattern = "\\.rds$", recursive = TRUE, full.names = TRUE)
+  
+  responses <- map_dfr(files, function(file) {
+    parts <- str_split(file, "/")[[1]]
+    model_provider <- parts[3] 
+    model_type <- parts[4]
+    article_id <- str_remove(basename(file), "\\.rds$")
+    raw_response <- readRDS(file) 
+    
+    tibble(
+      article_id = article_id,
+      model_provider = model_provider,
+      model_type = model_type,
+      raw_response = raw_response
+    )
+  })}
+
+combine_responses()
+
+
 
 # Helper functions
 create_empty_row <- function(article_id, model_provider, model_type, raw_response) {

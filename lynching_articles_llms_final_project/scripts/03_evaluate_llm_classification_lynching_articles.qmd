@@ -114,8 +114,176 @@ future_map(
 # Combine individual model responses into a single data frame
 ###
 source("r_scripts/03_05_r_evaluate_responses.R")
-responses <- combine_responses()
+#responses <- combine_responses()
+responses <- combine_responses_2() 
 
+json_class_responses <- responses %>%
+  mutate(valid_json_in_raw_response = map_lgl(raw_response, ~tryCatch(
+    jsonlite::validate(.x),
+    error = function(e) FALSE
+  ))) 
+
+good_at_json_parsing <- json_class_responses %>%
+  mutate(model_provider_type = paste0(model_provider, "_", model_type)) %>%
+  group_by(model_provider_type, valid_json_in_raw_response) %>%
+  count() %>%
+  pivot_wider(names_from=valid_json_in_raw_response, values_from=n)  %>%
+  replace_na(list(`TRUE` = 0, `FALSE` = 0))
+
+chat <- chat_openai(model = "gpt-4-turbo", system_prompt = "I will pass you a malformed json object. You should fix any errors that will prevent this from returning true when passed directly through the jsonlite::validate() function in R.  Return only valid json and nothing more. You should always end and begin what you return with a curly brace, and no other character", echo = FALSE)
+
+fix_json <- json_class_responses %>%
+  filter(valid_json_in_raw_response == FALSE) %>%
+  slice(1:5) %>%
+  mutate(repaired_json = case_when(
+    valid_json_in_raw_response == TRUE ~ raw_response,
+    TRUE ~ chat$chat(raw_response))
+  ) %>%
+  mutate(recheck_valid_json_in_raw_response = map_lgl(repaired_json, ~tryCatch(
+    jsonlite::validate(.x),
+    error = function(e) FALSE
+  ))) 
+           
+           
+    
+  
+
+response <- chat$chat(text)
+
+saveRDS(response, file = file_path)
+  
+fix_json <- function(model_provider_type="openai_gpt-4o-mini", df=json_class_responses) {
+  
+  
+  ###
+  # Parse model input string
+  ###
+  
+  # Check validity of model_provider_type
+  # Must be in format of provider_type, i.e. gemini_gemini-1.5-pro
+  
+  if (!is.character(model_provider_type) || length(model_provider_type) != 1) {
+    stop("model_provider_type must be a single character string")
+  }
+  
+  # Split into list of provider, type and check validity 
+  
+  parts <- str_split(model_provider_type, "_")[[1]]
+  
+  if (length(parts) != 2) stop("model_provider_type must be in format 'provider_model'")
+  
+  # Store component parts to pass to build 
+  model_provider <- parts[1]
+  model_type <- parts[2]
+  
+  ###
+  # Create save directory
+  ###
+  
+  save_dir <- file.path("../llm_responses", model_provider, model_type)
+  dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
+  
+  ###
+  # Create log file
+  ### 
+  log_file <- file.path(save_dir, "error_log.csv")
+  #if (overwrite || !file.exists(log_file)) {
+    write.csv(data.frame(
+      timestamp = character(),
+      article_id = character(),
+      error = character(),
+      stringsAsFactors = FALSE
+    ), log_file, row.names = FALSE)
+  #}
+  
+  ###
+  # Set number of articles to pass through models
+  ###
+  
+  result_df <- test_set_articles_df %>% 
+    slice(1:sample_size)
+  
+  ###
+  # Extract articles and article IDs into lists
+  ###
+  
+  articles <- result_df %>% 
+    pull(article)
+  
+  article_ids <- result_df %>% 
+    pull(article_id)
+  
+  ###
+  # Loop through articles and apply process_article function
+  ###
+  
+  walk(seq_along(articles), 
+       ~process_article(i = .x, 
+                        article_ids = article_ids, 
+                        articles = articles, 
+                        save_dir = save_dir, 
+                        model_provider = model_provider, 
+                        model_type = model_type, 
+                        overwrite=overwrite,
+                        model_provider_type=model_provider_type,
+                        log_file=log_file))
+  print(paste0("finished processing ", model_provider_type))
+}
+    
+  
+    
+  
+  
+  mutate(raw_response_clean = if_else(valid_json_in_raw_response,
+                                      raw_response,
+                                      str_trim(raw_response))) %>%
+  mutate(valid_json_in_raw_response_2 = map_lgl(raw_response_clean, ~tryCatch(
+    jsonlite::validate(.x),
+    error = function(e) FALSE
+  ))) %>%
+  filter(valid_json_in_raw_response == FALSE) %>%
+  filter(valid_json_in_raw_response_2 == TRUE)
+  
+  
+  
+  slice(1) %>%
+  pull(raw_response)
+  mutate(valid_json_in_raw_response_2 = map_lgl(raw_response_clean, ~tryCatch(
+    jsonlite::validate(.x),
+    error = function(e) FALSE
+  ))) 
+
+
+
+
+
+#  mutate(valid_json_in_raw_response = if_else(is.na(valid_json_in_raw_response), FALSE, valid_json_in_raw_response)) %>%  
+ # ))
+  #mutate(raw_response_clean = str_remove(raw_response, "^[^{]*")) %>%
+  #mutate(raw_response_clean = str_remove(raw_response_clean, "\\}[^\\}]*$")) %>%
+  mutate(raw_response_clean = str_remove(raw_response, "^```json\n*")) %>%
+  mutate(raw_response_clean = str_remove(raw_response_clean, "\n*```$")) %>%
+  
+
+x <- responses %>%
+  # mutate new column extracted json that detects whether response is valid json
+  mutate(extracted_json = try(jsonlite::isJSON(raw_response)) ) %>%
+  mutate(extracted_json = try(jsonlite::fromJSON(raw_response)) )
+  tryCatch({
+        parsed <- jsonlite::fromJSON(json)
+        create_row(article_id, model_provider, model_type, json, parsed)
+      }, error = function(e) {
+      warning(sprintf("Failed to parse JSON for file %s: %s\nResponse: %s", file, as.character(e), json))
+      create_empty_row(article_id, model_provider, model_type, raw_response)
+      })
+  }
+  })}
+
+
+
+%>%
+  group_by(model_provider, model_type) %>%
+  count()
 
 ##
 # Create objects that evaluate model completeness
@@ -150,8 +318,8 @@ future_map(
 #nrow(test_set_articles)
 
 classify_articles(
-  model_provider_type = provider_model_type_rerun_list[1],
-#  model_for_json_reparse = "gemini_gemini-1.5-flash",
+  model_provider_type = "gemini_gemini-1.5-pro",
+  model_for_json_reparse = "gemini_gemini-1.5-flash",
   system_prompt = system_prompt_value,
   test_set_articles_df = test_data,
   sample_size = nrow(test_data),
