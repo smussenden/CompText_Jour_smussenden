@@ -91,6 +91,7 @@ workers <- 4
 
 # Set up parallel processing
 future::plan(future::multisession, workers = workers)
+workers <- parallel::detectCores() - 1
 
 # Run classification in parallel
 future_map(
@@ -104,6 +105,50 @@ future_map(
 )
 nrow(test_set_articles)
 
+
+
+```
+
+```{r}
+# function to read in all rds files located inside folder llm_responses recursively and row bind use map_dfr
+
+read_llm_responses <- function() {
+  
+  # initiate multisession
+  workers <- parallel::detectCores() - 1
+  future::plan(future::multisession, workers = workers)
+
+  # Get all folders in llm_responses
+  providers <- list.dirs("../llm_responses", recursive = FALSE, full.names = FALSE)
+  
+  results <- data.frame()
+  #provider <- "groq"
+  for (provider in providers) {
+    # Get model folders for this provider
+    model_folders <- list.dirs(file.path("../llm_responses", provider), 
+                             recursive = FALSE, 
+                             full.names = FALSE)
+    #model <- model_folders[1]
+    for (model in model_folders) {
+      # Full path to check
+      full_path <- file.path("../llm_responses", provider, model)
+      
+      # Get all .rds files (responses) and exclude error_log.csv
+      files <- list.files(full_path, pattern = "*.rds", full.names = TRUE)
+      
+      # Read in all files
+      
+      responses <- furrr::future_map_dfr(files, read_csv, .progress=TRUE)
+      
+      # Add to results
+      results <- rbind(results, responses)
+    }
+  }
+  
+  return(results)
+}
+
+llm_responses <- read_llm_responses()
 
 
 ```
