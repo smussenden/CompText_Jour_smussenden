@@ -126,7 +126,7 @@ x$specific_class_predicted_v_actual
 
 x$specific_lynching_event_predicted_v_actual  
 
-
+# https://docs.google.com/document/d/1BFgzy3yK-rAcj1StJPnnM8se7GLp0uC0qCJJe9ojXEY/edit?tab=t.0
 
 ```
 
