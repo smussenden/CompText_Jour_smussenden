@@ -217,9 +217,8 @@ Results saved in: %s",
   
   return(invisible(output_dir))
 }
-#output_dir = "data/output_data/corrected_json"
-# The combine_json_results function remains the same
-combine_json_results <- function(output_dir = "../../data/output_data/corrected_json") {
+
+combine_json_results <- function(output_dir = "../data/output_data/corrected_json") {
   # Read and combine all files from each directory
   no_repair <- list.files(path(output_dir, "no_repair_needed"), full.names = TRUE) %>%
     map_dfr(readRDS) %>%
@@ -236,8 +235,7 @@ combine_json_results <- function(output_dir = "../../data/output_data/corrected_
   # Combine all results
   combined_results <- bind_rows(no_repair, fixed, failed)
   
-  
-  # First prepare the data and create the output_json column
+  # Prepare the data and create the output_json column
   combined_results <- combined_results %>%
     arrange(row_number()) %>%
     mutate(output_json = case_when(
@@ -246,24 +244,42 @@ combine_json_results <- function(output_dir = "../../data/output_data/corrected_
       folder == "failed_to_fix" ~ NA_character_
     ))
   
-  # Then parse and extract the JSON
+  # Parse JSON with error handling and consistent naming
   combined_results <- combined_results %>%
     mutate(
-      # Parse the JSON strings into R lists
-      extracted_json = map(output_json, ~tryCatch(
-        jsonlite::fromJSON(.x, simplifyVector = TRUE),
-        error = function(e) NA
-      ))
+      extracted_json = map(output_json, function(x) {
+        tryCatch({
+          parsed <- jsonlite::fromJSON(x, simplifyVector = TRUE)
+          # Ensure all elements have names
+          if (is.null(names(parsed))) {
+            names(parsed) <- paste0("value_", seq_along(parsed))
+          }
+          parsed
+        },
+        error = function(e) NA)
+      })
     )
   
-  # Unnest the JSON objects into separate columns
+  # Store original column names
+  original_cols <- names(combined_results)
+  
+  # Add safe unnesting with auto-generated names
   expanded_results <- combined_results %>%
-    unnest_wider(extracted_json, names_repair = "unique")
+    unnest_wider(
+      extracted_json,
+      names_sep = "_",  # Use underscore as separator for auto-generated names
+      names_repair = "unique"  # Ensure unique column names
+    )
   
-  # Clean up column names if needed
+  # Clean up column names while preserving uniqueness
   expanded_results <- expanded_results %>%
-    rename_with(~gsub("\\.", "_", .), everything())  # Replace dots with underscores in column names
+    # First replace dots with underscores in all columns
+    rename_with(~gsub("\\.", "_", .), everything()) %>%
+    # Then handle the extracted JSON columns separately
+    rename_with(
+      ~paste0("json_", gsub("extracted_json_", "", .)),  # Add 'json_' prefix
+      !any_of(original_cols)  # Only apply to new columns from JSON
+    )
   
-  
-  return(combined_results)
+  return(expanded_results)
 }
