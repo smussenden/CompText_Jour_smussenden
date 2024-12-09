@@ -279,7 +279,29 @@ combine_json_results <- function(output_dir = "../data/output_data/corrected_jso
     rename_with(
       ~paste0("json_", gsub("extracted_json_", "", .)),  # Add 'json_' prefix
       !any_of(original_cols)  # Only apply to new columns from JSON
-    )
+    ) %>%
+    ungroup() %>%
+    mutate(json_category_description = case_when(
+      !is.na(json_category_category_description) ~ json_category_category_description,
+      TRUE ~ json_category_description)) %>%
+    select(-json_category_category_description, -json_article_date, -json_article_source, -json_1) %>%
+    mutate(json_category_id = as.character(json_category_id)) %>%
+    #arrange(desc(json_category_id)) %>%
+    #group_by(json_category_id) %>%
+    #count() %>%
+    mutate(json_category_id = case_when(
+      str_detect(json_category_id, "^[[:digit:]]") ~ str_sub(json_category_id, 1, 1),
+      str_detect(tolower(json_category_id),"lynching event") ~ "1",
+      TRUE ~ "0"
+    )) %>%
+    #ungroup() %>%
+    #group_by(json_category_id_clean) %>%
+    #summarise(total=sum(n))
+    mutate(id_check = if_else(article_id == json_article_id, "match", "no_match")) %>%
+    select(article_id, model_provider, model_type, json_category_id, json_explanation, json_spellchecked_text,everything()) %>%
+    inner_join(test_data, by = "article_id") %>%
+    mutate(class_id_check = if_else(actual_class_id == json_category_id, "match", "no_match")) %>%
+    select(article_id, model_provider, model_type, class_id_check, predicted_category_id = json_category_id, actual_class_id, actual_class_definition = class_definition, newspaper_name:article, predicted_explanation = json_explanation, predicted_spellchecked_text = json_spellchecked_text, predicted_class_description = json_category_description, everything()) 
   
   return(expanded_results)
 }
