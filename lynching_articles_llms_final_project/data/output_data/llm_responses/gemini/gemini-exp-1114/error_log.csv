@@ -1,0 +1,25 @@
+"timestamp","article_id","error"
+"2024-12-08 13:49:12","89_1922-07-04_p17_sn83045462_00280657141_1922070401_0440","[1m[33mError[39m in `req_perform()`:[22m
+[33m![39m HTTP 429 Too Many Requests.
+[36m•[39m Resource has been exhausted (e.g. check quota).
+"
+"2024-12-08 13:49:14","3_1921-08-02_p25_sn85042354_00383342557_1921080201_0961","[1m[33mError[39m in `req_perform()`:[22m
+[33m![39m HTTP 429 Too Many Requests.
+[36m•[39m Resource has been exhausted (e.g. check quota).
+"
+"2024-12-08 13:49:16","9_1921-03-08_p14_sn84026749_00280764759_1921030801_0020","[1m[33mError[39m in `req_perform()`:[22m
+[33m![39m HTTP 429 Too Many Requests.
+[36m•[39m Resource has been exhausted (e.g. check quota).
+"
+"2024-12-08 13:49:18","9_1921-06-20_p12_sn87062237_00383342831_1921062001_0489","[1m[33mError[39m in `req_perform()`:[22m
+[33m![39m HTTP 429 Too Many Requests.
+[36m•[39m Resource has been exhausted (e.g. check quota).
+"
+"2024-12-08 13:49:19","52_1921-03-29_p9_sn83045433_00280764152_1921032901_0626","[1m[33mError[39m in `req_perform()`:[22m
+[33m![39m HTTP 429 Too Many Requests.
+[36m•[39m Resource has been exhausted (e.g. check quota).
+"
+"2024-12-08 13:49:20","57_1921-12-31_p11_sn85042354_00383342570_1921123101_0680","[1m[33mError[39m in `req_perform()`:[22m
+[33m![39m HTTP 429 Too Many Requests.
+[36m•[39m Resource has been exhausted (e.g. check quota).
+"

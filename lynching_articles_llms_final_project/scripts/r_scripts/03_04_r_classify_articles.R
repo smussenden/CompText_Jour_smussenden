@@ -3,9 +3,19 @@
 # Function to classify articles
 ###
 
+###
+# For testing, run function for a single model
+###
+#classify_articles(
+#  model_provider_type = "gemini_gemini-exp-1121",
+#  system_prompt = system_prompt_value,
+#  test_set_articles_df = test_data,
+#  sample_size = nrow(test_data),
+#  overwrite = FALSE
+#)
+
 
 classify_articles <- function(model_provider_type="gemini_gemini-1.5-pro",
-                              model_for_json_reparse="gemini_gemini-1.5-pro",
                               system_prompt=system_prompt_value,
                               test_set_articles_df = test_data, 
                               sample_size=1, 
@@ -37,7 +47,7 @@ classify_articles <- function(model_provider_type="gemini_gemini-1.5-pro",
   # Create save directory
   ###
   
-  save_dir <- file.path("../llm_responses", model_provider, model_type)
+  save_dir <- file.path("../data/output_data/llm_responses", model_provider, model_type)
   dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
   
   ###

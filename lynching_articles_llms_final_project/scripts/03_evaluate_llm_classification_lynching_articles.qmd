@@ -6,38 +6,14 @@ title: "final_final_project"
 
 ###
 # Step 01 Load libraries +
-# Open .Renviron file to add API Keys
+# Edit .Renviron file to add API Keys
+# Restart R after editing .Renviron files
 ###
-
 source("r_scripts/03_01_r_environment_setup.R")
-
-# Your .Renviron file should open up here.
-# It's a text file you can edit.  
-# It's where you'll store your API keys so you don't have to put them in your script.
-# Make sure the file is git-ignored, so you don't expose your keys to the public. 
-# You'll need to add in API keys for OpenAI, Groq, Amazon Bedrock, Google Gemini, and AWS if you want this script to work.
-# DO NOT EDIT THE EXAMPLES BELOW IN THE QMD FILE. 
-# THIS IS JUST TO SHOW YOU WHAT IT SHOULD LOOK LIKE IN Renviron. 
-# Be sure to save the change to the file when you make edits
-#OPENAI_API_KEY = "key_here"
-#GROQ_API_KEY = "key_here"
-#AWS_ACCESS_KEY_ID = "access_key_here"
-#AWS_SECRET_ACCESS_KEY = "secret_key_here"
-#AWS_REGION = "region_name"
-#GEMINI_API_KEY = "key_here"
-#GOOGLE_API_KEY = "key_here"
-
-# If you have added or changed keys in your .Renviron file, you have to restart R to make sure they're loaded.
-# If you have done that, you'll need to restart R and then reload libraries.
-# You can do that by uncommenting the two lines of code below and then running
-# If you have not made changes to .Renviron (you only have to do it once, or when your keys change), then leave these uncommented.
-# rstudioapi::restartSession()
-
 
 ###
 # Step 02 Define model list
 ###
-
 source("r_scripts/03_02_r_provider_model_list.R")
 
 ###
@@ -52,47 +28,40 @@ source("r_scripts/03_03_r_system_prompt.R")
 source("r_scripts/03_04_r_classify_articles.R")
 
 ###
-# Load training_data
+# Load function to combine and evaluate responses
 ###
 
-test_data <- read_rds("../data/03_test_data/03_test_data.rds")
+source("r_scripts/03_05_r_evaluate_responses.R")
+
+###
+# Load function to correct malformed json with llm
+###
+
+source("r_scripts/03_06_r_check_and_correct_json.R")
+
+
+###
+# Load test data
+###
+test_data <- read_rds("../data/input_data/03_test_data.rds")
+
+```
+
+```{r eval=FALSE}
+
+
 
 ###
 # Classify articles
 ###
 
 ###
-# For testing, run function for a single model
-###
-# classify_articles(
-#   model_provider_type = "gemini_gemini-1.5-flash",
-#   model_for_json_reparse = "gemini_gemini-1.5-flash",
-#   system_prompt = system_prompt_value,
-#   test_set_articles_df = test_data,
-#   sample_size = 1,
-#   overwrite = FALSE
-# )
-
-```
-
-
-```{r}
-
-
-###
 # Run function for all articles in parallel
 ###
-
-# Establish workers for parallel processing
-# Standard is one less than number of cpu cores
-# workers <- parallel::detectCores() - 1
-# We'll set at 4 for now
-#workers <- 4
 
 # Set up parallel processing
 workers <- parallel::detectCores() - 1
 future::plan(future::multisession, workers = workers)
-
 
 # Run classification in parallel
 future_map(
@@ -105,8 +74,281 @@ future_map(
   .progress = TRUE
 )
 
+###
+# Function to classify articles
+###
+
+##
+# For testing, run function for a single model
+##
+classify_articles(
+ model_provider_type = "gemini_gemini-exp-1114",
+ system_prompt = system_prompt_value,
+ test_set_articles_df = test_data,
+ sample_size = nrow(test_data),
+ overwrite = FALSE
+)
+```
+
+```{r}
+###
+# Parse model responses
+###
+
+responses <- combine_responses_validate_json("../data/output_data/llm_responses") %>%
+  filter(!str_detect(model_type,"1114"))
+
+###
+# Check for completeness
+###
+
+response_check <- get_model_completeness_status()[[2]]
+  
+###
+# Check and correct malformed json
+###
+
+output_dir <- correct_malformed_json_with_llm(responses, n_workers = 10)
 
 
+# Example usage:
+# Process the data and save to files:
+#output_dir <- correct_malformed_json_with_llm(responses, n_workers = 10)
+#
+# Later, when needed, combine all results:
+combined_df <- combine_json_results(output_dir)
+
+x <- combined_df %>%
+  group_by(article_id, model_provider, model_type, recheck_valid_json_in_raw_response) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(recheck_valid_json_in_raw_response = replace_na(as.character(recheck_valid_json_in_raw_response), "NA")) %>%
+  pivot_wider(names_from=recheck_valid_json_in_raw_response, values_from=n) %>%
+  mutate(`NA` = replace_na(`NA`, 0),
+         `FALSE` = replace_na(`FALSE`, 0),
+         `TRUE` = replace_na(`TRUE`, 0)) %>%
+  mutate(total = sum(`NA`, `FALSE`, `TRUE`)) %>%
+  distinct(article_id, model_provider, model_type)
+  filter(`NA` == 1, `FALSE` == 1) 
+  arrange(desc(n))
+  filter(recheck_valid_json_in_raw_response == FALSE) %>%
+  select(raw_response, repaired_json, recheck_valid_json_in_raw_response) %>%
+  slice(1:3)
+
+
+
+
+
+```
+
+```{r}
+
+
+
+```
+
+```{r}
+
+###
+# Parse responses
+###
+
+source("r_scripts/03_05_r_evaluate_responses.R")
+
+responses <- combine_responses_validate_json()
+#responses <- responses %>%
+ # filter(valid_json_in_raw_response == FALSE) %>%
+#slice(1:3)
+library(furrr)
+library(future)
+library(R.utils)
+library(progress)
+
+correct_malformed_json_with_llm <- function(df, n_workers = 3) {
+  # Set up parallel processing
+  plan(multisession, workers = n_workers)
+  
+  # Create chat client factory function to ensure each worker has its own client
+  create_chat_client <- function() {
+    chat_openai(
+      model = "gpt-4-turbo",
+      system_prompt = "I will pass you a malformed json object. Your task is to fix any errors that will prevent this from returning TRUE when passed directly through the jsonlite::validate() function in R. Do not change the content of the json object, only the structure.Format your response as a JSON object with these exact fields:{
+          \"article_id\": \"string, unchanged from input\",
+          \"spellchecked_text\": \"string, corrected spelling of article\",
+          \"category_id\": \"string, single digit 1-6\",
+          \"category_description\": \"string, exact category description from above\",
+          \"explanation\": \"string, brief reason for classification\"}
+      
+      If a value is missing for a specific key, or if a key is not present at all, include the key with an empty string as the value in your response. Important formatting rules:
+      - Use double quotes for all strings
+      - No line breaks in text fields
+      - No trailing commas
+      - No comments or additional text
+      - No markdown formatting
+      - Escape all quotes within text using single quotes
+      - Remove any \\r or \\n characters from text
+      - End the JSON object with a single closing curly brace }",
+      echo = FALSE
+    )
+  }
+  
+  # Process function for each row
+  process_row <- function(raw_response, valid_json_in_raw_response) {
+    if (valid_json_in_raw_response) {
+      return(raw_response)
+    }
+    
+    # Create a new chat client for this worker
+    chat <- create_chat_client()
+    
+    # Add timeout and retry logic
+    tryCatch({
+      R.utils::withTimeout({
+        attempt <- 1
+        max_attempts <- 3
+        result <- NULL
+        
+        while (attempt <= max_attempts && is.null(result)) {
+          result <- tryCatch({
+            chat$chat(raw_response)
+          }, error = function(e) {
+            if (attempt == max_attempts) {
+              return(paste0("Error after ", max_attempts, " attempts: ", e$message))
+            }
+            Sys.sleep(2^attempt)  # Exponential backoff
+            return(NULL)
+          })
+          attempt <- attempt + 1
+        }
+        result
+      }, timeout = 30)
+    }, error = function(e) {
+      paste0("Error: ", e$message)
+    })
+  }
+  
+  # Add progress bar
+  pb <- progress::progress_bar$new(
+    format = "[:bar] :current/:total (:percent) :eta",
+    total = nrow(df)
+  )
+  
+  # Process in parallel with progress updates
+  repaired_json <- df %>%
+    mutate(
+      repaired_json = future_map2(
+        raw_response,
+        valid_json_in_raw_response,
+        ~{
+          result <- process_row(.x, .y)
+          pb$tick()
+          result
+        },
+        .options = furrr_options(seed = TRUE)
+      )
+    ) %>%
+    mutate(
+      recheck_valid_json_in_raw_response = map_lgl(repaired_json, ~tryCatch(
+        jsonlite::validate(.x),
+        error = function(e) FALSE
+      ))
+    )
+  
+  # Clean up parallel processing
+  plan(sequential)
+  
+  # Enhanced summary statistics
+  n_total <- nrow(repaired_json)
+  n_already_valid <- sum(df$valid_json_in_raw_response)
+  n_needed_repair <- n_total - n_already_valid
+  n_fixed <- sum(repaired_json$recheck_valid_json_in_raw_response & !repaired_json$valid_json_in_raw_response)
+  n_failed <- sum(!repaired_json$recheck_valid_json_in_raw_response & !repaired_json$valid_json_in_raw_response)
+  
+  # Create summary attributes
+  attr(repaired_json, "summary") <- list(
+    total_processed = n_total,
+    already_valid = n_already_valid,
+    needed_repair = n_needed_repair,
+    successfully_fixed = n_fixed,
+    failed_to_fix = n_failed
+  )
+  
+  # Print detailed summary
+  message(sprintf("\nProcessing Summary:
+Total JSON objects processed: %d
+- Already valid (no repair needed): %d
+- Needed repair: %d
+  └─ Successfully fixed: %d
+  └─ Failed to fix: %d", 
+    n_total, n_already_valid, n_needed_repair, n_fixed, n_failed))
+  
+  return(repaired_json)
+}
+
+# Example usage:
+fixed <- correct_malformed_json_with_llm(responses, n_workers = 5)
+# 
+# To access summary later:
+# summary_stats <- attr(fixed, "summary")
+# Example usage:
+
+```
+
+```{r}
+
+df <- responses %>%
+  slice(1:2)
+correct_malformed_json_with_llm <- function(df) {
+  
+  chat <- chat_openai(
+        model = "gpt-4-turbo",
+        system_prompt = "I will pass you a malformed json object. Your task is to fix any errors that will prevent this from returning TRUE when passed directly through the jsonlite::validate() function in R. Do not change the content of the json object, only the structure.Format your response as a JSON object with these exact fields:{
+            \"article_id\": \"string, unchanged from input\",
+            \"spellchecked_text\": \"string, corrected spelling of article\",
+            \"category_id\": \"string, single digit 1-6\",
+            \"category_description\": \"string, exact category description from above\",
+            \"explanation\": \"string, brief reason for classification\"}
+        
+        If a value is missing for a specific key, or if a key is not present at all, include the key with an empty string as the value in your response. Important formatting rules:
+- Use double quotes for all strings
+- No line breaks in text fields
+- No trailing commas
+- No comments or additional text
+- No markdown formatting
+- Escape all quotes within text using single quotes
+- Remove any \\r or \\n characters from text
+- End the JSON object with a single closing curly brace }",
+
+echo = FALSE)
+  
+  repaired_json <- df %>%
+      #filter(valid_json_in_raw_response == FALSE) %>%
+      #slice(1) %>%
+      mutate(repaired_json = case_when(
+        valid_json_in_raw_response == TRUE ~ raw_response,
+        
+        TRUE ~ tryCatch(
+            chat$chat(raw_response),
+            error = function(e) paste0("Error: ", e$message)
+            ))
+        ) %>%
+    mutate(recheck_valid_json_in_raw_response = map_lgl(repaired_json, ~tryCatch(
+    jsonlite::validate(.x),
+    error = function(e) FALSE
+  ))) 
+    
+  return(repaired_json)  
+}
+
+fixed <- correct_malformed_json_with_llm(responses)
+
+
+
+json_class_responses <- responses %>%
+  mutate(valid_json_in_raw_response = map_lgl(raw_response, ~tryCatch(
+    jsonlite::validate(.x),
+    error = function(e) FALSE
+  ))) 
 ```
 
 ```{r}
@@ -130,7 +372,32 @@ good_at_json_parsing <- json_class_responses %>%
   pivot_wider(names_from=valid_json_in_raw_response, values_from=n)  %>%
   replace_na(list(`TRUE` = 0, `FALSE` = 0))
 
-chat <- chat_openai(model = "gpt-4-turbo", system_prompt = "I will pass you a malformed json object. You should fix any errors that will prevent this from returning true when passed directly through the jsonlite::validate() function in R.  Return only valid json and nothing more. You should always end and begin what you return with a curly brace, and no other character", echo = FALSE)
+chat <- chat_openai(model = "gpt-4-turbo",
+        system_prompt = "I will pass you a malformed json object. 
+
+        Your task is to fix any errors that will prevent this from returning TRUE when passed directly through the jsonlite::validate() function in R. Do not change the content of the json object, only the structure.  
+        Format your response as a JSON object with these exact fields:
+        {
+            \"article_id\": \"string, unchanged from input\",
+            \"spellchecked_text\": \"string, corrected spelling of article\",
+            \"category_id\": \"string, single digit 1-6\",
+            \"category_description\": \"string, exact category description from above\",
+            \"explanation\": \"string, brief reason for classification\"
+        }
+        
+        If a value is missing for a specific key, or if a key is not present at all, include the key with an empty string as the value in your response. 
+        
+Important formatting rules:
+- Use double quotes for all strings
+- No line breaks in text fields
+- No trailing commas
+- No comments or additional text
+- No markdown formatting
+- Escape all quotes within text using single quotes
+- Remove any \\r or \\n characters from text
+- End the JSON object with a single closing curly brace }",
+
+echo = FALSE)
 
 fix_json <- json_class_responses %>%
   filter(valid_json_in_raw_response == FALSE) %>%

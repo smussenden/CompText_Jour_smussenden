@@ -1,3 +1,26 @@
+# Your .Renviron file should open up here.
+# It's a text file you can edit.  
+# It's where you'll store your API keys so you don't have to put them in your script.
+# Make sure the file is git-ignored, so you don't expose your keys to the public. 
+# You'll need to add in API keys for OpenAI, Groq, Amazon Bedrock, Google Gemini, and AWS if you want this script to work.
+# DO NOT EDIT THE EXAMPLES BELOW IN THE QMD FILE. 
+# THIS IS JUST TO SHOW YOU WHAT IT SHOULD LOOK LIKE IN Renviron. 
+# Be sure to save the change to the file when you make edits
+#OPENAI_API_KEY = "key_here"
+#GROQ_API_KEY = "key_here"
+#AWS_ACCESS_KEY_ID = "access_key_here"
+#AWS_SECRET_ACCESS_KEY = "secret_key_here"
+#AWS_REGION = "region_name"
+#GEMINI_API_KEY = "key_here"
+#GOOGLE_API_KEY = "key_here"
+
+# If you have added or changed keys in your .Renviron file, you have to restart R to make sure they're loaded.
+# If you have done that, you'll need to restart R and then reload libraries.
+# You can do that by uncommenting the two lines of code below and then running
+# If you have not made changes to .Renviron (you only have to do it once, or when your keys change), then leave these uncommented.
+# rstudioapi::restartSession()
+
+
 # Function to install missing packages
 install_if_missing <- function(packages) {
   new_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
@@ -27,7 +50,8 @@ required_packages <- c(
   
   # Development tools
   "usethis",      # Automate common development tasks and project setup
-  "rstudioapi"   # Access RStudio IDE API
+  "rstudioapi",   # Access RStudio IDE API
+  "fs"           # File system operations
 )
 
 # Install missing packages

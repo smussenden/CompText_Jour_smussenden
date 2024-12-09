@@ -64,7 +64,7 @@ provider_model_type_list <- c(
   # Pass 12  
   "groq_mixtral-8x7b-32768",# works
   "bedrock_cohere.command-r-plus-v1:0", # works
-  "gemini_gemini-exp-1114",#works
+  #"gemini_gemini-exp-1114",#works
   
   # Pass 13
   "bedrock_ai21.jamba-1-5-large-v1:0", # this works
