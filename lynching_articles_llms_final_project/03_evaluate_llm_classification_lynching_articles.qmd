@@ -1,0 +1,148 @@
+---
+title: "Historical Newspaper Article Classification Identification Using Zero-Shot LLMs for Content Analysis; a Proof-of-Concept Experiment"
+author: "Sean Mussenden"
+date: Sys.Date()
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show R code"
+    code-tools: true
+execute:
+  error: false
+  warning: false
+  message: false
+  eval: true
+
+---
+
+```{r}
+#| label: loading_scripts
+#| message: false
+#| echo: false
+#| warning: false
+
+###
+# Step 01 
+# Load libraries + set up environment
+# Edit .Renviron file to add API Keys. 
+# Run this: usethis::edit_r_environ() 
+# Restart R after editing .Renviron files
+
+###
+source("scripts/r_scripts/03_01_r_environment_setup.R")
+
+###
+# Step 02 
+# Define LLM model list
+# Edit the list to change models
+###
+source("scripts/r_scripts/03_02_r_provider_model_list.R")
+
+###
+# Step 03 Define system prompt to send with each article
+# Edit the system prompt to change the prompt
+###
+
+source("scripts/r_scripts/03_03_r_system_prompt.R")
+
+###
+# Step 04 Load function to classify articles
+###
+source("scripts/r_scripts/03_04_r_classify_articles.R")
+
+###
+# Step 05 Load function to combine and evaluate responses
+###
+
+source("scripts/r_scripts/03_05_r_evaluate_responses.R")
+
+###
+# Step 06 Load function to correct malformed json with llm
+###
+
+source("scripts/r_scripts/03_06_r_check_and_correct_json.R")
+
+###
+# Step 07 Load function to evaluate model performance
+###
+
+source("scripts/r_scripts/03_07_r_evaluate_model_accuracy.R")
+
+
+###
+# Load test data of lynching stories
+###
+lynching_articles_test_data <- read_rds("data/input_data/03_test_data.rds")
+
+###
+# Classify lynching articles with LLMs
+###
+
+# Run classification in parallel
+# This function is commented out to prevent running it in the notebook.
+# This is because it requires having API keys set in .Renviron file
+# And because running it costs money
+# Output artifacts of this prompt are in the data/output_data/llm_responses folder
+# To cache results and save money on having to rerun, we save each output inference as a single row rds df
+# This will error if you do not have API keys set
+
+# Set up parallel processing environment
+
+# workers <- parallel::detectCores() - 1
+# future::plan(future::multisession, workers = workers)
+
+# Execute classification function
+# 
+# future_map(
+#   provider_model_type_list,
+#   classify_articles,
+#   system_prompt = system_prompt_value,
+#   test_set_articles_df = lynching_articles_test_data,
+#   sample_size = nrow(lynching_articles_test_data),
+#   overwrite = FALSE,
+#   .progress = TRUE
+# )
+
+ 
+###
+# Parse model responses
+###
+
+# Combine all the individual responses into a single tibble, and check for valid json
+lynching_article_llm_responses <- combine_responses_validate_json("data/output_data/llm_responses")
+
+###
+# Check for completeness
+###
+# Function creates completeness check objects below
+provider_model_type_status_check <- get_model_completeness_status(lynching_article_llm_responses, lynching_articles_test_data) 
+provider_model_type_status_check <- provider_model_type_status_check$provider_model_type_status_df 
+
+###
+# Check and correct malformed json
+###
+
+# This function passes bad json to another llm to clean up
+results_with_corrected_json <- correct_malformed_json_with_llm(lynching_article_llm_responses, n_workers = 10)
+
+###
+# Combine results and compute accuracy
+###
+llm_classification_accuracy_stats <- create_model_accuracy_stats(output_dir = results_with_corrected_json,test_data = lynching_articles_test_data)
+
+###
+# Binary classification results
+###
+
+specific_lynching_event_predicted_v_actual <- llm_classification_accuracy_stats$specific_lynching_event_predicted_v_actual %>%
+  select(model_provider_type, pct_correct, total_correct, total_incorrect, everything()) 
+
+###
+# Multi-class classification results
+###
+
+specific_class_predicted_v_actual <-  llm_classification_accuracy_stats$specific_class_predicted_v_actual %>%
+  select(model_provider_type, pct_correct, true, false, total) %>%
+  arrange(desc(pct_correct))
+
+```

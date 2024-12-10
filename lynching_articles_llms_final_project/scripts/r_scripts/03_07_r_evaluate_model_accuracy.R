@@ -1,5 +1,4 @@
-
-create_model_accuracty_stats <- function(output_dir) {
+create_model_accuracy_stats <- function(output_dir = results_with_corrected_json, test_data = lynching_articles_test_data) {
 
 # Later, when needed, combine all results:
 combined_df <- combine_json_results(output_dir) %>%

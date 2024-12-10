@@ -34,9 +34,8 @@ Important formatting rules:
 - Remove any \\r or \\n characters from text
 - End the JSON object with a single closing curly brace }"
 
-print("--------------------------")
-print("System prompt that will be sent with each article")
-print("Edit the list in 03_03_r_system_prompt.R")
-print("--------------------------")
-
-print(system_prompt_value)
+#print("--------------------------")
+#print("System prompt that will be sent with each article")
+#print("Edit the list in 03_03_r_system_prompt.R")
+#print("--------------------------")
+#print(system_prompt_value)
