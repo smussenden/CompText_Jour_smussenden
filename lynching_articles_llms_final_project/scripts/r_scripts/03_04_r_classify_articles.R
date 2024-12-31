@@ -17,7 +17,7 @@
 
 classify_articles <- function(model_provider_type="gemini_gemini-1.5-pro",
                               system_prompt=system_prompt_value,
-                              test_set_articles_df = test_data, 
+                              test_set_articles_df = lynching_articles_test_data, 
                               sample_size=1, 
                               overwrite=TRUE) {
   
@@ -47,7 +47,7 @@ classify_articles <- function(model_provider_type="gemini_gemini-1.5-pro",
   # Create save directory
   ###
   
-  save_dir <- file.path("../data/output_data/llm_responses", model_provider, model_type)
+  save_dir <- file.path("data/output_data/llm_responses", model_provider, model_type)
   dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
   
   ###
@@ -185,25 +185,3 @@ process_article <- function(i, article_ids, articles, save_dir, model_provider, 
                     i, model_provider, model_type, error_msg))
   })
 }
-
-#overwrite <- FALSE
-#model_provider_type <- "gemini_gemini-1.5-pro"
-#sample_size <- nrow(test_set_articles)
-#classify_articles(model_provider_type, sample_size, overwrite)
-
-# set workers to 1 less than number of cores
-# model_provider_type_list <- c("bedrock_amazon.titan-text-premier-v1:0")
-
-#workers <- parallel::detectCores() - 1
-#future::plan(future::multisession, workers = workers)
-
-#model_provider_type_list <- unfinished_file_count_models
-# Run classification in parallel
-#future_map(
-#  model_provider_type_list,
-#  classify_articles,
-#  sample_size = nrow(test_set_articles),
-#  overwrite = FALSE,
-#  .progress = TRUE
-#)
-#nrow(test_set_articles)

@@ -41,8 +41,8 @@ combine_responses_validate_json <- function(base_dir = "../data/output_data/llm_
   
   responses <- map_dfr(files, function(file) {
     parts <- str_split(file, "/")[[1]]
-    model_provider <- parts[5] 
-    model_type <- parts[6]
+    model_provider <- parts[4] 
+    model_type <- parts[5]
     article_id <- str_remove(basename(file), "\\.rds$")
     raw_response <- readRDS(file) 
     
@@ -56,7 +56,8 @@ combine_responses_validate_json <- function(base_dir = "../data/output_data/llm_
     mutate(valid_json_in_raw_response = map_lgl(raw_response, ~tryCatch(
       jsonlite::validate(.x),
       error = function(e) FALSE
-    ))) 
+    )))  %>%
+    filter(!str_detect(model_type,"1114"))
 }
 
 # combine_responses()
@@ -90,7 +91,7 @@ create_row <- function(article_id, model_provider, model_type, raw_response, par
   )
 }
 
-get_model_completeness_status <- function() {
+get_model_completeness_status <- function(responses = lynching_article_llm_responses, test_data = lynching_article_test_data) {
   
   response_count <- responses %>%
     count(model_provider, model_type) %>%

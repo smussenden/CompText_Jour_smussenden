@@ -1,5 +1,5 @@
 
-correct_malformed_json_with_llm <- function(df, n_workers = 3, output_dir = "../data/output_data/corrected_json", skip_existing = TRUE) {
+correct_malformed_json_with_llm <- function(df, n_workers = 3, output_dir = "data/output_data/corrected_json", skip_existing = TRUE) {
   # Validate required columns exist
   required_cols <- c("model_provider", "model_type", "article_id")
   missing_cols <- setdiff(required_cols, names(df))
@@ -218,7 +218,7 @@ Results saved in: %s",
   return(invisible(output_dir))
 }
 
-combine_json_results <- function(output_dir = "../data/output_data/corrected_json") {
+combine_json_results <- function(output_dir = "data/output_data/corrected_json", test_data = lynching_articles_test_data) {
   # Read and combine all files from each directory
   no_repair <- list.files(path(output_dir, "no_repair_needed"), full.names = TRUE) %>%
     map_dfr(readRDS) %>%

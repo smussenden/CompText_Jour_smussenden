@@ -69,21 +69,18 @@ if(!requireNamespace("elmer", quietly = TRUE)) {
 # Load all libraries
 invisible(lapply(required_packages, library, character.only = TRUE))
 
-# Run to open renviron file to edit
-usethis::edit_r_environ() 
-
 # Let's see those keys
 
 # If all of these keys are set, then you can run the following to check
-print("--------------------------")
-print("Currently set environment variables, stored LLM keys")
-print("Run usethis::edit_r_environ() to open renviron file to edit")
-print("Then restart R session for changes to take effect")
-print("--------------------------")
-print(paste0("OPENAI_API_KEY: ",Sys.getenv("OPENAI_API_KEY")))
-print(paste0("GROQ_API_KEY: ",Sys.getenv("GROQ_API_KEY")))
-print(paste0("AWS_ACCESS_KEY_ID: ",Sys.getenv("AWS_ACCESS_KEY_ID")))
-print(paste0("AWS_SECRET_ACCESS_KEY: ",Sys.getenv("AWS_SECRET_ACCESS_KEY")))
-print(paste0("AWS_REGION: ",Sys.getenv("AWS_REGION")))
-print(paste0("GEMINI_API_KEY: ",Sys.getenv("GEMINI_API_KEY")))
-print(paste0("GOOGLE_API_KEY: ",Sys.getenv("GOOGLE_API_KEY")))
+# print("--------------------------")
+# print("Currently set environment variables, stored LLM keys")
+# print("Run usethis::edit_r_environ() to open renviron file to edit")
+# print("Then restart R session for changes to take effect")
+# print("--------------------------")
+# print(paste0("OPENAI_API_KEY: ",Sys.getenv("OPENAI_API_KEY")))
+# print(paste0("GROQ_API_KEY: ",Sys.getenv("GROQ_API_KEY")))
+# print(paste0("AWS_ACCESS_KEY_ID: ",Sys.getenv("AWS_ACCESS_KEY_ID")))
+# print(paste0("AWS_SECRET_ACCESS_KEY: ",Sys.getenv("AWS_SECRET_ACCESS_KEY")))
+# print(paste0("AWS_REGION: ",Sys.getenv("AWS_REGION")))
+# print(paste0("GEMINI_API_KEY: ",Sys.getenv("GEMINI_API_KEY")))
+# print(paste0("GOOGLE_API_KEY: ",Sys.getenv("GOOGLE_API_KEY")))
